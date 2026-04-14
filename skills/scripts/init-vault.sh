@@ -8,14 +8,25 @@ set -euo pipefail
 # 退出码: 0 成功, 1 参数无效, 2 创建失败
 
 VAULT="${1:-}"
+export VAULT
 if [ -z "$VAULT" ]; then
   echo "错误: 请提供 vault 路径" >&2
   echo "用法: bash init-vault.sh <vault-path>" >&2
   exit 1
 fi
 
+# 验证绝对路径
+case "$VAULT" in
+  /*) ;;
+  *)
+    echo "错误: vault 路径必须是绝对路径: $VAULT" >&2
+    exit 1
+    ;;
+esac
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONFIG="${2:-$SCRIPT_DIR/../.vault-config.json}"
+export CONFIG
 TODAY=$(date +%Y-%m-%d)
 
 # ============================================================
@@ -384,21 +395,21 @@ fi
 # ============================================================
 # 4. 更新 .vault-config.json
 # ============================================================
-python3 -c "
+python3 -c '
 import json, os
 
-config_path = os.path.expanduser('$CONFIG')
+config_path = os.path.expanduser(os.environ["CONFIG"])
 if os.path.exists(config_path):
     with open(config_path) as f:
         config = json.load(f)
 else:
     config = {}
 
-config['vaultPath'] = '$VAULT'
-config['initialized'] = True
+config["vaultPath"] = os.environ["VAULT"]
+config["initialized"] = True
 
-with open(config_path, 'w') as f:
+with open(config_path, "w") as f:
     json.dump(config, f, indent=2)
-"
+'
 
 exit 0
