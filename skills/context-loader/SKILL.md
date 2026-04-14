@@ -11,6 +11,14 @@ Agent 启动时自动加载相关上下文，不依赖外部 hook。
 
 新会话开始时，Agent 主动执行。
 
+## 初始化检查
+
+激活时检查 skills 根目录下的 `.vault-config.json`。
+- 如果文件存在且 `initialized` 为 `true`：正常执行上下文加载
+- 否则：提示用户"Second Brain vault 尚未初始化，是否现在执行初始化？"
+  - 用户确认：按 refine-knowledge 的初始化流程执行（`../../scripts/init-vault.sh` + `../../scripts/mount-hooks.sh`）
+  - 用户拒绝：跳过本次上下文加载，报告"上下文加载已跳过"
+
 ## Vault 结构
 
 ```
