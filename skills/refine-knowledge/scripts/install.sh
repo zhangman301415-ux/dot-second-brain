@@ -175,17 +175,9 @@ print('  ✓ hooks 已配置到 settings.json')
 # ============================================================
 echo "4/5 生成索引文件..."
 
-write_file() {
-  local path="$1"
-  if [ ! -f "$path" ]; then
-    cat > "$path"
-    echo "  ✓ $path"
-  else
-    echo "  - $(basename "$path") 已存在，跳过"
-  fi
-}
 
-cat > "$VAULT/03-Episodic/index.md" << EOF | write_file "$VAULT/03-Episodic/index.md"
+if [ ! -f "$VAULT/03-Episodic/index.md" ]; then
+cat > "$VAULT/03-Episodic/index.md" << EOF
 ---
 type: episodic
 created: $TODAY
@@ -199,8 +191,13 @@ created: $TODAY
 | 事件 | 关键词 | 教训/价值 | 日期 |
 |------|--------|-----------|------|
 EOF
+echo "  ✓ 03-Episodic/index.md"
+else
+  echo "  - index.md 已存在，跳过"
+fi
 
-cat > "$VAULT/01-Procedural/index.md" << EOF | write_file "$VAULT/01-Procedural/index.md"
+if [ ! -f "$VAULT/01-Procedural/index.md" ]; then
+cat > "$VAULT/01-Procedural/index.md" << EOF
 ---
 type: procedural
 created: $TODAY
@@ -220,8 +217,13 @@ created: $TODAY
 - ⚠️ 待验证 — 刚沉淀，未经过实践检验
 - ❌ 有局限 — 实践发现不适用于某些场景
 EOF
+echo "  ✓ $VAULT/01-Procedural/index.md"
+else
+  echo "  - index.md 已存在，跳过"
+fi
 
-cat > "$VAULT/02-Semantic/index.md" << 'EOF' | write_file "$VAULT/02-Semantic/index.md"
+if [ ! -f "$VAULT/02-Semantic/index.md" ]; then
+cat > "$VAULT/02-Semantic/index.md" << 'EOF'
 ---
 type: semantic
 created: auto
@@ -246,8 +248,13 @@ created: auto
 - 新增知识时，在本文件中添加条目
 - 不确定 Areas vs Resources 时，优先 Resources
 EOF
+echo "  ✓ $VAULT/02-Semantic/index.md"
+else
+  echo "  - index.md 已存在，跳过"
+fi
 
-cat > "$VAULT/04-Working/active.md" << EOF | write_file "$VAULT/04-Working/active.md"
+if [ ! -f "$VAULT/04-Working/active.md" ]; then
+cat > "$VAULT/04-Working/active.md" << EOF
 ---
 type: working
 created: $TODAY
@@ -267,13 +274,20 @@ created: $TODAY
 ## 最近日志
 -
 EOF
+echo "  ✓ $VAULT/04-Working/active.md"
+else
+  echo "  - active.md 已存在，跳过"
+fi
 
 # ============================================================
 # 5. 生成 Identity 模板文件
 # ============================================================
 echo "5/5 生成 Identity 模板..."
 
-cat > "$VAULT/00-Identity/profile.md" << 'EOF' | write_file "$VAULT/00-Identity/profile.md"
+
+# Identity files use create_if_missing since content is static
+if [ ! -f "$VAULT/00-Identity/profile.md" ]; then
+cat > "$VAULT/00-Identity/profile.md" << 'EOF'
 ---
 type: profile
 created: auto
@@ -332,8 +346,13 @@ version: "1.0"
 
 > 当身份发生显著变化时，更新此卡片并记录到 [[turning-points|转折点]] 中。
 EOF
+echo "  ✓ $VAULT/00-Identity/profile.md"
+else
+  echo "  - profile.md 已存在，跳过"
+fi
 
-cat > "$VAULT/00-Identity/values/core-values.md" << 'EOF' | write_file "$VAULT/00-Identity/values/core-values.md"
+if [ ! -f "$VAULT/00-Identity/values/core-values.md" ]; then
+cat > "$VAULT/00-Identity/values/core-values.md" << 'EOF'
 ---
 type: identity
 category: values
@@ -367,8 +386,13 @@ created: auto
 
 - 返回至 [[../../profile|核心身份卡]]
 EOF
+echo "  ✓ $VAULT/00-Identity/values/core-values.md"
+else
+  echo "  - core-values.md 已存在，跳过"
+fi
 
-cat > "$VAULT/00-Identity/capabilities/current-skills.md" << 'EOF' | write_file "$VAULT/00-Identity/capabilities/current-skills.md"
+if [ ! -f "$VAULT/00-Identity/capabilities/current-skills.md" ]; then
+cat > "$VAULT/00-Identity/capabilities/current-skills.md" << 'EOF'
 ---
 type: identity
 category: capabilities
@@ -406,8 +430,13 @@ created: auto
 
 - 返回至 [[../../profile|核心身份卡]]
 EOF
+echo "  ✓ $VAULT/00-Identity/capabilities/current-skills.md"
+else
+  echo "  - current-skills.md 已存在，跳过"
+fi
 
-cat > "$VAULT/00-Identity/capabilities/growth-trajectory.md" << 'EOF' | write_file "$VAULT/00-Identity/capabilities/growth-trajectory.md"
+if [ ! -f "$VAULT/00-Identity/capabilities/growth-trajectory.md" ]; then
+cat > "$VAULT/00-Identity/capabilities/growth-trajectory.md" << 'EOF'
 ---
 type: identity
 category: capabilities
@@ -438,8 +467,13 @@ created: auto
 
 - 返回至 [[../../profile|核心身份卡]]
 EOF
+echo "  ✓ $VAULT/00-Identity/capabilities/growth-trajectory.md"
+else
+  echo "  - growth-trajectory.md 已存在，跳过"
+fi
 
-cat > "$VAULT/00-Identity/preferences/work-style.md" << 'EOF' | write_file "$VAULT/00-Identity/preferences/work-style.md"
+if [ ! -f "$VAULT/00-Identity/preferences/work-style.md" ]; then
+cat > "$VAULT/00-Identity/preferences/work-style.md" << 'EOF'
 ---
 type: identity
 category: preferences
@@ -480,8 +514,13 @@ created: auto
 
 - 返回至 [[../../profile|核心身份卡]]
 EOF
+echo "  ✓ $VAULT/00-Identity/preferences/work-style.md"
+else
+  echo "  - work-style.md 已存在，跳过"
+fi
 
-cat > "$VAULT/00-Identity/narrative/turning-points.md" << 'EOF' | write_file "$VAULT/00-Identity/narrative/turning-points.md"
+if [ ! -f "$VAULT/00-Identity/narrative/turning-points.md" ]; then
+cat > "$VAULT/00-Identity/narrative/turning-points.md" << 'EOF'
 ---
 type: identity
 category: narrative
@@ -506,8 +545,13 @@ created: auto
 
 - 返回至 [[../../profile|核心身份卡]]
 EOF
+echo "  ✓ $VAULT/00-Identity/narrative/turning-points.md"
+else
+  echo "  - turning-points.md 已存在，跳过"
+fi
 
-cat > "$VAULT/00-Identity/relationships/communities.md" << 'EOF' | write_file "$VAULT/00-Identity/relationships/communities.md"
+if [ ! -f "$VAULT/00-Identity/relationships/communities.md" ]; then
+cat > "$VAULT/00-Identity/relationships/communities.md" << 'EOF'
 ---
 type: identity
 category: relationships
@@ -532,6 +576,10 @@ created: auto
 
 - 返回至 [[../../profile|核心身份卡]]
 EOF
+echo "  ✓ $VAULT/00-Identity/relationships/communities.md"
+else
+  echo "  - communities.md 已存在，跳过"
+fi
 
 # ============================================================
 # 完成
