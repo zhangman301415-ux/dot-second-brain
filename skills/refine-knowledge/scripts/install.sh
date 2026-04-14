@@ -328,9 +328,8 @@ created: auto
 
 ---
 
-## 元信息
+---
 
-- 返回至 [[../../profile|核心身份卡]]
 EOF
 echo "  ✓ $VAULT/00-Identity/values/core-values.md"
 else
@@ -372,9 +371,8 @@ created: auto
 
 ---
 
-## 元信息
+---
 
-- 返回至 [[../../profile|核心身份卡]]
 EOF
 echo "  ✓ $VAULT/00-Identity/capabilities/current-skills.md"
 else
@@ -409,9 +407,8 @@ created: auto
 
 ---
 
-## 元信息
+---
 
-- 返回至 [[../../profile|核心身份卡]]
 EOF
 echo "  ✓ $VAULT/00-Identity/capabilities/growth-trajectory.md"
 else
@@ -456,9 +453,8 @@ created: auto
 
 ---
 
-## 元信息
+---
 
-- 返回至 [[../../profile|核心身份卡]]
 EOF
 echo "  ✓ $VAULT/00-Identity/preferences/work-style.md"
 else
@@ -487,9 +483,8 @@ created: auto
 
 ---
 
-## 元信息
+---
 
-- 返回至 [[../../profile|核心身份卡]]
 EOF
 echo "  ✓ $VAULT/00-Identity/narrative/turning-points.md"
 else
@@ -518,9 +513,8 @@ created: auto
 
 ---
 
-## 元信息
+---
 
-- 返回至 [[../../profile|核心身份卡]]
 EOF
 echo "  ✓ $VAULT/00-Identity/relationships/communities.md"
 else
