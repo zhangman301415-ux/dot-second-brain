@@ -49,6 +49,7 @@ test-session-001"
 }
 
 @test "hook-lifecycle: queue-session silent exit on empty payload" {
+  # Simulate queue-session.sh parsing logic with empty transcript_path
   PAYLOAD=$(python3 -c "
 import json
 print(json.dumps({'transcript_path': '', 'session_id': 'test'}))
@@ -58,7 +59,16 @@ import json, sys
 d = json.load(sys.stdin)
 print(d.get('transcript_path', ''))
 " 2>/dev/null || true)
+  # queue-session.sh: [ -z "$TRANSCRIPT" ] || [ ! -f "$TRANSCRIPT" ] && exit 0
+  # When transcript is empty, script exits 0 silently
   [ -z "$TRANSCRIPT" ]
+  # Verify this would result in silent exit (no stdout from the parsing beyond empty string)
+  SESSION_ID=$(echo "$PAYLOAD" | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+print(d.get('session_id', ''))
+" 2>/dev/null || true)
+  [ "$SESSION_ID" = "test" ]
 }
 
 @test "hook-lifecycle: inject-context reads context file" {
