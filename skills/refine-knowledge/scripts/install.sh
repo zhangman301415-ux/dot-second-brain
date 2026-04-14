@@ -328,8 +328,6 @@ created: auto
 
 ---
 
----
-
 EOF
 echo "  ✓ $VAULT/00-Identity/values/core-values.md"
 else
@@ -371,8 +369,6 @@ created: auto
 
 ---
 
----
-
 EOF
 echo "  ✓ $VAULT/00-Identity/capabilities/current-skills.md"
 else
@@ -404,8 +400,6 @@ created: auto
 | 时间段 | 领域 | 起点 | 当前 | 下一步 |
 |--------|------|------|------|--------|
 | | | | | |
-
----
 
 ---
 
@@ -453,8 +447,6 @@ created: auto
 
 ---
 
----
-
 EOF
 echo "  ✓ $VAULT/00-Identity/preferences/work-style.md"
 else
@@ -483,8 +475,6 @@ created: auto
 
 ---
 
----
-
 EOF
 echo "  ✓ $VAULT/00-Identity/narrative/turning-points.md"
 else
@@ -510,8 +500,6 @@ created: auto
 | 社群 | 角色 | 参与方式 | 时间 |
 |------|------|---------|------|
 | | | | |
-
----
 
 ---
 
