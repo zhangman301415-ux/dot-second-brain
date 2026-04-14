@@ -2,5 +2,11 @@
   "name": "dot-second-brain",
   "version": "0.1.0",
   "description": "五层认知架构 Agent Skills — 知识萃取与上下文加载",
-  "private": true
+  "private": true,
+  "scripts": {
+    "test": "bats tests/"
+  },
+  "devDependencies": {
+    "bats": "^1.11.0"
+  }
 }
