@@ -1,39 +1,42 @@
 import { spawnSync } from "child_process";
-import { cpSync, readFileSync, writeFileSync, mkdirSync, realpathSync, mkdtempSync } from "fs";
+import { cpSync, readFileSync, writeFileSync, mkdirSync, realpathSync, mkdtempSync, existsSync, statSync } from "fs";
 import { tmpdir } from "os";
 import { mkdtemp } from "fs/promises";
-import { join } from "path";
+import { join, resolve } from "path";
 
-const SCRIPTS_DIR = join(__dirname, "../../skills/scripts");
-const SKILLS_ROOT = join(__dirname, "../..");
+const DIST_DIR = resolve(join(__dirname, "../../dist"));
+const SKILLS_ROOT = resolve(join(__dirname, "../.."));
 
-/**
- * Create an isolated temp directory.
- * Returns the directory path.
- */
+// Ensure dist exists before running tests
+if (!existsSync(join(DIST_DIR, "skills"))) {
+  const buildResult = spawnSync("npm", ["run", "build"], {
+    encoding: "utf-8",
+    stdio: "inherit",
+    cwd: SKILLS_ROOT,
+  });
+  if (buildResult.status !== 0) {
+    throw new Error("Build failed before tests");
+  }
+}
+
 export async function createTempDir(): Promise<string> {
   return await mkdtemp(join(realpathSync(tmpdir()), "second-brain-test-"));
 }
 
-/**
- * Synchronous temp dir for BATS-style setup/teardown.
- */
 export function createTempDirSync(): string {
   const prefix = join(realpathSync(tmpdir()), "second-brain-test-");
   return mkdtempSync(prefix);
 }
 
-/**
- * Run a shell script and return its result.
- */
 export function runScript(
   scriptName: string,
   args: string[] = [],
   options: { env?: Record<string, string>; cwd?: string } = {}
 ): { status: number; stdout: string; stderr: string } {
-  const scriptPath = join(SCRIPTS_DIR, scriptName);
+  const baseName = scriptName.replace(/\.sh$/, "");
+  const scriptPath = join(DIST_DIR, "skills/scripts", `${baseName}.js`);
   try {
-    const result = spawnSync("bash", [scriptPath, ...args], {
+    const result = spawnSync("node", [scriptPath, ...args], {
       encoding: "utf-8",
       env: { ...process.env, ...options.env },
       cwd: options.cwd,
@@ -48,9 +51,6 @@ export function runScript(
   }
 }
 
-/**
- * Run an arbitrary bash command.
- */
 export function runBash(
   command: string,
   options: { env?: Record<string, string>; cwd?: string } = {}
@@ -67,10 +67,6 @@ export function runBash(
   };
 }
 
-/**
- * Setup a vault directory structure under the given temp dir.
- * Returns the vault path.
- */
 export function setupVault(tmpDir: string): string {
   const vault = join(tmpDir, "vault");
   mkdirSync(join(vault, "06-Archive/ingest/queue"), { recursive: true });
@@ -79,10 +75,6 @@ export function setupVault(tmpDir: string): string {
   return vault;
 }
 
-/**
- * Setup a skills directory with real scripts copied in.
- * Returns the skills path.
- */
 export function setupSkills(tmpDir: string): string {
   const skills = join(tmpDir, "skills");
   const refineScripts = join(skills, "refine-knowledge/scripts");
@@ -90,29 +82,24 @@ export function setupSkills(tmpDir: string): string {
   mkdirSync(refineScripts, { recursive: true });
   mkdirSync(loaderScripts, { recursive: true });
 
-  cpSync(
-    join(SKILLS_ROOT, "skills/refine-knowledge/scripts/queue-session.sh"),
-    join(refineScripts, "queue-session.sh")
-  );
-  cpSync(
-    join(SKILLS_ROOT, "skills/context-loader/scripts/inject-context.sh"),
-    join(loaderScripts, "inject-context.sh")
-  );
+  const refineSrc = join(SKILLS_ROOT, "skills/refine-knowledge/scripts/queue-session.sh");
+  const loaderSrc = join(SKILLS_ROOT, "skills/context-loader/scripts/inject-context.sh");
+
+  if (existsSync(refineSrc)) {
+    cpSync(refineSrc, join(refineScripts, "queue-session.sh"));
+  }
+  if (existsSync(loaderSrc)) {
+    cpSync(loaderSrc, join(loaderScripts, "inject-context.sh"));
+  }
   return skills;
 }
 
-/**
- * Write settings.json to a fake home directory.
- */
 export function writeSettings(homeDir: string, settings: object): void {
   const settingsPath = join(homeDir, ".claude/settings.json");
   mkdirSync(join(homeDir, ".claude"), { recursive: true });
   writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
 }
 
-/**
- * Read settings.json from a fake home directory.
- */
 export function readSettings(homeDir: string): Record<string, unknown> {
   const settingsPath = join(homeDir, ".claude/settings.json");
   return JSON.parse(readFileSync(settingsPath, "utf-8"));
