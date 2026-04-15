@@ -4,9 +4,11 @@
   "description": "五层认知架构 Agent Skills — 知识萃取与上下文加载",
   "private": true,
   "scripts": {
-    "test": "bats tests/unit/*.bats tests/integration/*.bats"
+    "test": "vitest run tests/**/*.test.ts",
+    "test:watch": "vitest tests/**/*.test.ts"
   },
   "devDependencies": {
-    "bats": "^1.11.0"
+    "vitest": "^3",
+    "tsx": "^4"
   }
 }
