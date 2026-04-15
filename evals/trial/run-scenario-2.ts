@@ -7,12 +7,13 @@
 
 import { mkdtempSync, realpathSync } from "fs";
 import { tmpdir } from "os";
-import { join, resolve } from "path";
+import { dirname, join, resolve } from "path";
 import { createScenario2Data } from "./scenario-2-data.js";
 import { spawnSync } from "child_process";
 
-const SKILLS_ROOT = resolve(join(__dirname, "../../.."));
-const DIST_DIR = resolve(join(SKILLS_ROOT, "dist"));
+const THIS_DIR = dirname(new URL(import.meta.url).pathname);
+// THIS_DIR = dist/evals/trial → go up 2 levels → dist/
+const DIST_DIR = resolve(join(THIS_DIR, "..", ".."));
 
 function main() {
   const startTime = Date.now();
