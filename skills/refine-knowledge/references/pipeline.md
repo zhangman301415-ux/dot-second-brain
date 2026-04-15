@@ -59,16 +59,8 @@ tags: [从内容中提取]
 3. 根据 `references/criteria.md` 的 L5 信号检测标准判断
 4. 如果有信号：
    a. 读取已有 `00-Identity/pending-updates.md`（如不存在则创建）
-   b. 检查是否已有相同/相似 pending 条目（去重）
-   c. 生成新 pending 条目，追加到文件：
-
-```markdown
-## [YYYY-MM-DD] - [维度: 角色/能力/价值观/自我认知]
-**建议**: 在 `[对应 Identity 文件]` 中追加/修改：...
-**证据**: 
-- YYYY-MM-DD session: "用户原文引用"
-**状态**: pending
-```
+   b. 检查是否已有相同/相似 pending 条目（去重，30 天内）
+   c. 生成新 pending 条目，追加到文件（格式见 `references/pending-updates-format.md`）
 
 5. 提示用户：
 ```
@@ -77,15 +69,9 @@ tags: [从内容中提取]
 ```
 
 6. 用户确认 → 将建议写入对应 Identity 文件，从 pending 中标记为 resolved：
-   ```markdown
-   **状态**: resolved（已写入 [对应文件名]）
-   **处理日期**: YYYY-MM-DD
-   ```
+   （状态格式见 `references/pending-updates-format.md`）
    用户忽略 → 标记为 rejected：
-   ```markdown
-   **状态**: rejected（用户认为非持久变化）
-   **处理日期**: YYYY-MM-DD
-   ```
+   （状态格式见 `references/pending-updates-format.md`）
    用户稍后 → 保持 pending
 
 ## Step 3: 检测可沉淀方法（用户确认 + 分流）

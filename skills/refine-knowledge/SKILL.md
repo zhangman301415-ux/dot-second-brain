@@ -106,6 +106,7 @@ Identity 层由以下文件组成，Agent 应主动读取以理解用户身份�
 - **判断标准**: `references/criteria.md`
 - **索引格式**: `references/index-formats.md`
 - **会话摘要格式**: `references/session-format.md`
+- **Identity 提案格式**: `references/pending-updates-format.md`
 
 ## 执行清单
 
