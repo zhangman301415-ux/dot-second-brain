@@ -11,6 +11,6 @@
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": ["tests/**/*.ts", "skills/**/*.ts", "evals/**/*.ts"],
+  "include": ["tests/**/*.ts", "skills/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

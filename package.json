@@ -10,8 +10,9 @@
     "test:watch": "vitest tests/**/*.test.ts"
   },
   "devDependencies": {
-    "vitest": "^3",
+    "@types/node": "^25.6.0",
     "tsx": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3"
   }
 }
