@@ -1,7 +1,7 @@
 import { spawnSync } from "child_process";
-import { cpSync, readFileSync, writeFileSync, mkdirSync } from "fs";
+import { cpSync, readFileSync, writeFileSync, mkdirSync, realpathSync, mkdtempSync } from "fs";
 import { tmpdir } from "os";
-import { mkdtemp, realpath, mkdtempSync } from "fs/promises";
+import { mkdtemp } from "fs/promises";
 import { join } from "path";
 
 const SCRIPTS_DIR = join(__dirname, "../../skills/scripts");
@@ -20,11 +20,6 @@ export async function createTempDir(): Promise<string> {
  */
 export function createTempDirSync(): string {
   const prefix = join(realpathSync(tmpdir()), "second-brain-test-");
-  return mkdtempSyncWithFallback(prefix);
-}
-
-function mkdtempSyncWithFallback(prefix: string): string {
-  // Use the imported mkdtempSync from fs/promises
   return mkdtempSync(prefix);
 }
 
