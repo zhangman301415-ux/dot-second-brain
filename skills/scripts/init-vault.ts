@@ -15,6 +15,10 @@ if (!VAULT.startsWith("/")) {
 }
 
 const SCRIPT_DIR = dirname(new URL(import.meta.url).pathname);
+// Resolve identity templates dir: handles both compiled (dist/) and source (skills/)
+const IDENTITY_TEMPLATES_DIR = existsSync(join(SCRIPT_DIR, "..", "..", "..", "skills", "refine-knowledge", "references", "identity"))
+  ? join(SCRIPT_DIR, "..", "..", "..", "skills", "refine-knowledge", "references", "identity")
+  : join(SCRIPT_DIR, "..", "refine-knowledge", "references", "identity");
 const CONFIG = process.argv[3] ?? resolve(join(SCRIPT_DIR, "..", ".vault-config.json"));
 const TODAY = new Date().toISOString().slice(0, 10);
 
@@ -126,246 +130,27 @@ created: ${TODAY}
 }
 
 // 3. Generate Identity templates (skip if exists)
-const identityFiles: [string, string][] = [
-  ["00-Identity/profile.md", `---
-type: profile
-created: auto
-version: "1.0"
----
-
-# 核心身份卡
-
----
-
-## 自我概念
-
-<!-- 用 2-3 句话描述：你是谁、在做什么、想成为什么样的人 -->
-
-**我是谁:**
-
-
-**我当前在做什么:**
-
-
-**我想成为什么样的人:**
-
-
----
-
-## 活跃关注领域
-
-- [[ ]] 关注领域 1
-- [[ ]] 关注领域 2
-
----
-
-## 当前角色
-
-| 角色 | 上下文 | 时间跨度 |
-|------|--------|----------|
-| | | |
-
----
-
-## 关键属性
-
-- **语言偏好:** 中文为主
-- **思维方式:**
-- **核心驱动力:**
-
----
-
-`],
-  ["00-Identity/values/core-values.md", `---
-type: identity
-category: values
-created: auto
----
-
-# 核心价值观
-
-> 这些是我做出决策和评判事物的根本原则。
-
----
-
-## 核心价值观
-
-1. **价值 1** — 为什么这对你重要，它如何指导你的行为
-
-2. **价值 2** — 为什么这对你重要，它如何指导你的行为
-
-3. **价值 3** — 为什么这对你重要，它如何指导你的行为
-
----
-
-## 行为原则
-
-- 原则 1
-- 原则 2
-
----
-
-`],
-  ["00-Identity/capabilities/current-skills.md", `---
-type: identity
-category: capabilities
-created: auto
----
-
-# 当前技能矩阵
-
-> 不是"我学过什么"，而是"我实际能做什么"。
-
----
-
-## 技能表
-
-| 技能 | 水平 | 最后验证 | 参考方法 |
-|------|------|---------|---------|
-| | | | |
-
-**水平定义：**
-- 初学者：知道概念，需要指导
-- 入门：能独立完成简单任务
-- 中级：能解决常见问题，偶尔卡住
-- 高级：能设计解决方案，教别人
-- 专家：能创造新方法，定义标准
-
----
-
-## 短板清单
-
--
-
----
-
-`],
-  ["00-Identity/capabilities/growth-trajectory.md", `---
-type: identity
-category: capabilities
-created: auto
----
-
-# 能力演进轨迹
-
-> 记录我在各领域的成长路径和方向。
-
----
-
-## 当前成长方向
-
--
-
----
-
-## 成长历程
-
-| 时间段 | 领域 | 起点 | 当前 | 下一步 |
-|--------|------|------|------|--------|
-| | | | | |
-
----
-
-`],
-  ["00-Identity/preferences/work-style.md", `---
-type: identity
-category: preferences
-created: auto
----
-
-# 工作偏好
-
-> 记录我**自然地**倾向于怎么工作。
-
----
-
-## 工作时间偏好
-
-- **高效时段：**
-- **低效时段：**
-- **工作节奏：**
-
----
-
-## 协作偏好
-
-- **沟通方式：**
-- **反馈节奏：**
-- **决策风格：**
-
----
-
-## 学习偏好
-
-- **学习方式：**
-- **知识粒度：**
-- **复习频率：**
-
----
-
-`],
-  ["00-Identity/narrative/turning-points.md", `---
-type: identity
-category: narrative
-created: auto
----
-
-# 转折点
-
-> 记录塑造了我当前身份的关键事件和决策。
-
----
-
-## 时间线
-
-| 日期 | 事件 | 如何改变了我 |
-|------|------|-------------|
-| | | |
-
----
-
-`],
-  ["00-Identity/relationships/communities.md", `---
-type: identity
-category: relationships
-created: auto
----
-
-# 所属社群
-
-> 我参与的社区、组织和圈子。
-
----
-
-## 社群列表
-
-| 社群 | 角色 | 参与方式 | 时间 |
-|------|------|---------|------|
-| | | | |
-
----
-
-`],
-  ["00-Identity/pending-updates.md", `---
-type: identity-pending
-created: auto
----
-
-# Identity 待更新提案
-
-> 检测到的 Identity 变化信号，待用户确认。
-
----
-
-<!-- 无待处理提案 -->
-
-`],
+// Templates are stored in references/identity/*-format.md
+const identityDir = IDENTITY_TEMPLATES_DIR;
+
+const identityMappings: [string, string][] = [
+  ["00-Identity/profile.md", "profile-format.md"],
+  ["00-Identity/values/core-values.md", "core-values-format.md"],
+  ["00-Identity/capabilities/current-skills.md", "current-skills-format.md"],
+  ["00-Identity/capabilities/growth-trajectory.md", "growth-trajectory-format.md"],
+  ["00-Identity/preferences/work-style.md", "work-style-format.md"],
+  ["00-Identity/narrative/turning-points.md", "turning-points-format.md"],
+  ["00-Identity/relationships/communities.md", "communities-format.md"],
+  ["00-Identity/pending-updates.md", "pending-updates-format.md"],
 ];
 
-for (const [relPath, content] of identityFiles) {
-  const fullPath = join(VAULT, relPath);
+for (const [vaultPath, formatFile] of identityMappings) {
+  const fullPath = join(VAULT, vaultPath);
   if (!existsSync(fullPath)) {
-    writeFileSync(fullPath, content, "utf-8");
+    const formatPath = join(identityDir, formatFile);
+    if (existsSync(formatPath)) {
+      writeFileSync(fullPath, readFileSync(formatPath, "utf-8"));
+    }
   }
 }
 
