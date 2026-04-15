@@ -4,46 +4,31 @@
 
 ## 来源
 
-每个 `agent-sessions.md` 由 Stop Hook（`queue-session.sh`）在会话结束时自动生成：备份完整 JSONL 到归档，启动后台 tmux + `claude --resume` 生成摘要写入此文件。
+每个 `agent-sessions.md` 由 Stop Hook（`queue-session.ts`）在会话结束时自动生成：备份完整 JSONL 到归档，启动后台 tmux + `claude --resume` 生成摘要写入此文件。
+
+Prompt 模板位于 `references/session-prompt.md`，脚本运行时读取并注入日期和 session_id 后使用。
 
 ## 文件结构
 
-```markdown
+完整格式见 `references/session-prompt.md`，以下为结构概览：
+
+```
 ---
-date: YYYY-MM-DD
-type: agent-session
-processed: false
-session_id: <claude-code-session-id>
+date: YYYY-MM-DD          ← 会话日期
+type: agent-session        ← 固定值
+processed: false           ← 处理标记
+session_id: xxx            ← Claude Code 会话 ID
 ---
 
 ## Session: <时间范围>
-**任务：** <用户的核心任务>
-
-**做了什么：**
-- 按时间顺序列出关键动作。多步骤操作按阶段分组（探索阶段→设计阶段→实现阶段）
-- 每个动作写清楚用了什么方法/工具，不只写动作名
-
-**结果：** <结果是什么，以及是否有效/用户是否满意>
-- 如创建了重要文件/代码，用 [[文件名]] 格式引用
-
-**决策/犹豫：**
-- <做出了哪些选择？替代选项是什么？为什么选这个？>
-- 特别注意：如果用户纠正、否定或要求改变方向，必须记录——原来做了什么，用户说了什么，改成了什么
-- 用户的预期和实际结果有差异吗？
-
-**教训：**
-- <发现了什么不对/什么有效/什么比预期好或差？>
-- <在什么条件下有效/无效？>
-
-**涉及概念：**
-- <概念名> — <在这个上下文中学到了什么/用它做了什么>
-- <概念名> — <...>
-
-**用户自我描述：**
-<用户在 session 中关于自己的角色、能力、偏好、自我认知的表述。如果用户没有此类表述，留空。>
-
-**建议提炼：**
-<Episodic/Semantic/Procedural/都不需要> — <原因。如果之前出现过类似问题，提及>
+**任务：** ...
+**做了什么：** ...
+**结果：** ...
+**决策/犹豫：** ...
+**教训：** ...
+**涉及概念：** ...
+**用户自我描述：** ...
+**建议提炼：** ...
 ```
 
 ## 字段说明
