@@ -25,28 +25,7 @@
 2. 根据 `references/criteria.md` 判断是否值得提炼
 3. 如果值得：
    - 从任务内容中提取标题
-   - 创建文件：`03-Episodic/YYYY-MM-DD-标题.md`
-   - 格式：
-
-```markdown
----
-date: YYYY-MM-DD
-type: episodic
-source: agent-session-YYYY-MM-DD-session-xxx
-tags: [从内容中提取]
----
-
-# 标题
-
-**背景：** 从"任务"和"做了什么"中提取
-
-**关键决策：**
-1. 从"决策/犹豫"中提取
-
-**结果：** 从"结果"中提取
-
-**关联文档：** [[04-Working/YYYY-MM-DD/agent-sessions]]
-```
+   - 创建文件：`03-Episodic/YYYY-MM-DD-标题.md`（格式见 `references/vault-templates/episodic-entry-template.md`）
 
 4. 标记 `processed: true`（修改 frontmatter）
 
