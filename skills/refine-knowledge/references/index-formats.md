@@ -1,23 +1,19 @@
 # 索引格式（Index Formats）
 
-各层索引和 active.md 的结构定义。Agent 按这些格式读写索引。
+各层索引和 active.md 的结构定义。实际模板内容见 `vault-templates/` 目录。
 
-## 03-Episodic/index.md
+## 索引文件列表
 
-```markdown
----
-type: episodic
-created: YYYY-MM-DD
----
+| 文件 | 模板 | 用途 |
+|------|------|------|
+| `03-Episodic/index.md` | `episodic-index-template.md` | 情景记忆索引 |
+| `01-Procedural/index.md` | `procedural-index-template.md` | 方法论索引 |
+| `02-Semantic/index.md` | `semantic-index-template.md` | 知识索引（Areas + Resources） |
+| `04-Working/active.md` | `active-template.md` | 当前活跃关注点 |
 
-# Episodic Memory — 情景索引
+## 索引列定义
 
-> 发生过什么？从原始数据中提炼出的有意义的情景记忆。
-
-## 情景索引
-| 事件 | 关键词 | 教训/价值 | 日期 |
-|------|--------|-----------|------|
-```
+### Episodic index
 
 | 列名 | 说明 |
 |------|------|
@@ -26,64 +22,17 @@ created: YYYY-MM-DD
 | 教训/价值 | 一句话总结 |
 | 日期 | 事件日期 YYYY-MM-DD |
 
-## 01-Procedural/index.md
-
-```markdown
----
-type: procedural
-created: YYYY-MM-DD
----
-
-# Procedural Memory — 方法论索引
-
-> 记录经过实践验证的方法论、SOP、工作流。
-> 不是"我觉得应该这样做"，而是"我这样做确实有效"。
-
-## 方法论索引
-| 方法 | 适用场景 | 有效性 | 关联 Episodic | 日期 |
-|------|----------|--------|--------------|------|
-
-**有效性字段：**
-- ✅ 已验证 — 被引用后效果良好
-- ⚠️ 待验证 — 刚沉淀，未经过实践检验
-- ❌ 有局限 — 实践发现不适用于某些场景
-```
+### Procedural index
 
 | 列名 | 说明 |
 |------|------|
 | 方法 | 方法名称 |
 | 适用场景 | 什么情况下使用 |
-| 有效性 | ✅ / ⚠️ / ❌ |
+| 有效性 | ✅ 已验证 / ⚠️ 待验证 / ❌ 有局限 |
 | 关联 Episodic | 来源事件，[[文件名]] 格式 |
 | 日期 | 沉淀日期 YYYY-MM-DD |
 
-## 02-Semantic/index.md
-
-```markdown
----
-type: semantic
-created: auto
----
-
-# Semantic Knowledge — 知识索引
-
-> 我知道什么？结构化的领域知识和参考资料。
-
-## Areas（我需要负责的事）
-
-| 主题 | 说明 | 最近更新 |
-|------|------|----------|
-
-## Resources（我觉得有用的资料）
-
-| 主题 | 说明 | 最近更新 |
-|------|------|----------|
-
-## 维护规则
-
-- 新增知识时，在本文件中添加条目
-- 不确定 Areas vs Resources 时，优先 Resources
-```
+### Semantic index
 
 | 列名 | 说明 |
 |------|------|
@@ -91,28 +40,7 @@ created: auto
 | 说明 | 一句话说明是什么 |
 | 最近更新 | 最后修改日期 YYYY-MM-DD |
 
-## 04-Working/active.md
-
-```markdown
----
-type: working
-created: YYYY-MM-DD
----
-
-# Working — 当前活跃关注点
-
-## 活跃项目
--
-
-## 独立任务
--
-
-## 犹豫中的决策
--
-
-## 最近日志
--
-```
+### active.md
 
 | 部分 | 说明 |
 |------|------|
@@ -121,4 +49,8 @@ created: YYYY-MM-DD
 | 犹豫中的决策 | 尚未确定的选择 |
 | 最近日志 | 按日期倒序追加，格式 `YYYY-MM-DD: 事件 — [→ 已提炼]` |
 
-context-loader 从 active.md 提取关键词（活跃项目、独立任务），用于各层索引的相关性匹配。
+## Agent 行为规则
+
+- context-loader 从 active.md 提取关键词（活跃项目、独立任务），用于各层索引的相关性匹配
+- 新增索引条目时，同步更新对应的索引文件
+- 维护规则详见各模板文件中的 HTML 注释
