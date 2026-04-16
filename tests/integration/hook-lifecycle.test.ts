@@ -7,9 +7,6 @@ import {
   runBash,
 } from "../helpers/setup";
 
-const LOADER_SCRIPTS_DIR = join(__dirname, "../../skills/context-loader/scripts");
-const REFINES_SCRIPTS_DIR = join(__dirname, "../../skills/refine-knowledge/scripts");
-
 describe("hook-lifecycle", () => {
   let TEST_TMP: string;
   let TEST_VAULT: string;
@@ -71,17 +68,17 @@ describe("hook-lifecycle", () => {
   test("inject-context reads context file", () => {
     const contextFile = join(TEST_VAULT, "06-Archive/ingest/context/latest.md");
     writeFileSync(contextFile, "# Latest context\nTest data for integration");
-    const result = runBash(
-      `OBSIDIAN_VAULT_PATH="${TEST_VAULT}" npx tsx ${join(LOADER_SCRIPTS_DIR, "inject-context.ts")}`
-    );
+    const result = runScript("inject-context.ts", [], {
+      env: { OBSIDIAN_VAULT_PATH: TEST_VAULT },
+    });
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("Latest context");
   });
 
   test("inject-context no output when file missing", () => {
-    const result = runBash(
-      `OBSIDIAN_VAULT_PATH="${TEST_VAULT}" npx tsx ${join(LOADER_SCRIPTS_DIR, "inject-context.ts")}`
-    );
+    const result = runScript("inject-context.ts", [], {
+      env: { OBSIDIAN_VAULT_PATH: TEST_VAULT },
+    });
     expect(result.status).toBe(0);
     expect(result.stdout).toBe("");
   });

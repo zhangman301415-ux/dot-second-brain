@@ -4,6 +4,18 @@
 
 ## 安装
 
+### npm 包（推荐）
+
+```bash
+# 全局安装
+npm install -g second-brain
+
+# 或直接 npx 运行
+npx --yes second-brain mount-hooks
+```
+
+### GitHub 源码
+
 通过 `npx skills` 从 GitHub 仓库安装：
 
 ```bash
@@ -19,7 +31,7 @@ npx skills add zhangman301415-ux/second-brain
 1. **Vault 初始化** — 创建五层认知目录结构，生成索引和 Identity 模板
 2. **Hook 自动注册** — 自动将 `Stop` 和 `SessionStart` hooks 注册到 `~/.claude/settings.json`
 
-首次触发时仅会询问 vault 路径，Hook 注册无需用户确认（`npx skills add` 不会自动注册 hooks，所以 Skill 会在首次使用时自动补全）。
+首次触发时仅会询问 vault 路径，Hook 注册无需用户确认。
 
 默认 Vault 路径：`~/Documents/obsidian-workspace/obsidian_workspace`
 
@@ -31,7 +43,7 @@ npx skills add zhangman301415-ux/second-brain
 # 安装依赖
 npm install
 
-# 编译 TypeScript
+# 编译 TypeScript + 复制模板
 npm run build
 
 # 运行测试
@@ -40,7 +52,15 @@ npm test
 
 ### 日常使用
 
-安装 Skill 后即可使用，无需额外配置：
+```bash
+# 挂载 Hooks
+npx --yes second-brain mount-hooks
+
+# 初始化 Vault
+npx --yes second-brain init-vault <vault-path>
+```
+
+Skill 安装后即可使用，无需额外配置：
 
 - **`/refine-knowledge`** — 手动触发知识萃取
 - 新会话自动触发上下文加载
@@ -61,11 +81,17 @@ npm test
 │   │   └── references/
 │   └── scripts/                    # 共享脚本
 │       ├── init-vault.ts           # Vault 初始化
-│       └── mount-hooks.ts          # Hook 挂载
+│       └── mount-hooks.ts          # Hook 注册
+├── bin/                            # CLI 入口脚本（npm 分发）
+│   ├── cli.js                      # 主 CLI: second-brain
+│   ├── stop-hook.js                # second-brain-stop-hook
+│   └── session-start-hook.js       # second-brain-session-start-hook
+├── scripts/
+│   └── copy-templates.mjs          # 构建时复制模板
 ├── evals/                          # 评估系统（回归测试）
 ├── tests/                          # 单元测试 & 集成测试
 ├── docs/                           # 设计文档
-├── dist/                           # 编译输出
+├── dist/                           # 编译输出（含模板）
 └── .claude/                        # Claude Code 配置
 ```
 
@@ -108,23 +134,23 @@ npm test
   3. 按任务关键词匹配，渐进式加载相关全文
   4. Token 预算控制在 ~10K-15K
 
+## CLI 命令
+
+| 命令 | 功能 |
+|------|------|
+| `npx --yes second-brain init-vault <vault-path>` | 创建 Vault 目录结构，生成各层索引和 Identity 模板 |
+| `npx --yes second-brain mount-hooks` | 注册 Stop/SessionStart Hook 到 settings.json |
+| `npx --yes second-brain-stop-hook` | Stop Hook 入口（内部调用 queue-session.js） |
+| `npx --yes second-brain-session-start-hook` | SessionStart Hook 入口（内部调用 inject-context.js） |
+
 ## Hook 机制
 
-| Hook | 触发时机 | 脚本 | 功能 |
-|------|----------|------|------|
-| `Stop` | 会话结束 | `queue-session.ts` | 捕获会话摘要，后台生成并排队等待知识萃取 |
-| `SessionStart` | 会话开始 | `inject-context.ts` | 注入上次会话摘要和相关上下文 |
+| Hook | 触发时机 | 入口命令 | 功能 |
+|------|----------|----------|------|
+| `Stop` | 会话结束 | `second-brain-stop-hook` | 捕获会话摘要，后台生成并排队等待知识萃取 |
+| `SessionStart` | 会话开始 | `second-brain-session-start-hook` | 注入上次会话摘要和相关上下文 |
 
-Hooks 通过 `SKILL.md` frontmatter 声明，由 `mount-hooks.ts` 挂载到 `~/.claude/hooks/`，无需手动配置 `settings.json`。
-
-## 核心脚本
-
-| 脚本（源码） | 编译后 | 功能 |
-|-------------|--------|------|
-| `skills/scripts/init-vault.ts` | `dist/scripts/init-vault.js` | 创建 Vault 目录结构，生成各层索引和 Identity 模板 |
-| `skills/scripts/mount-hooks.ts` | `dist/scripts/mount-hooks.js` | 复制 Hooks 到 `~/.claude/hooks/`，更新 settings.json |
-| `skills/refine-knowledge/scripts/queue-session.ts` | `dist/refine-knowledge/scripts/queue-session.js` | Stop Hook：备份会话记录，启动 tmux 后台生成摘要 |
-| `skills/context-loader/scripts/inject-context.ts` | `dist/context-loader/scripts/inject-context.js` | SessionStart Hook：从归档注入上下文 |
+Hooks 通过 `SKILL.md` frontmatter 声明，由 `second-brain mount-hooks` 注册到 `~/.claude/settings.json`。
 
 ## 评估系统
 
@@ -141,5 +167,5 @@ Hooks 通过 `SKILL.md` frontmatter 声明，由 `mount-hooks.ts` 挂载到 `~/.
 ## 技术栈
 
 - **TypeScript** — 所有脚本使用 TypeScript 编写
-- **tsx** — 运行时执行
+- **npm CLI** — 编译后通过 bin 分发，无需 tsx 运行时
 - **Vitest** — 测试框架

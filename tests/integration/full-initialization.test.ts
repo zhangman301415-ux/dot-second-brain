@@ -31,7 +31,7 @@ describe("full-initialization", () => {
     expect(existsSync(join(TEST_VAULT, "06-Archive/ingest/queue"))).toBe(true);
     expect(existsSync(join(TEST_VAULT, "00-Identity/profile.md"))).toBe(true);
     expect(existsSync(join(TEST_VAULT, "03-Episodic/index.md"))).toBe(true);
-    const configPath = join(TEST_TMP, ".vault-config.json");
+    const configPath = join(TEST_VAULT, ".vault-config.json");
     expect(existsSync(configPath)).toBe(true);
     const config = JSON.parse(readFileSync(configPath, "utf-8"));
     expect(config.initialized).toBe(true);

@@ -16,7 +16,7 @@ if (!VAULT.startsWith("/")) {
 
 const COMMANDS_DIR = dirname(new URL(import.meta.url).pathname);
 const TEMPLATES_DIR = join(COMMANDS_DIR, "..", "templates", "vault-templates");
-const CONFIG = process.argv[3] ?? resolve(join(COMMANDS_DIR, "..", ".vault-config.json"));
+const CONFIG = process.argv[3] ?? resolve(VAULT, ".vault-config.json");
 const TODAY = new Date().toISOString().slice(0, 10);
 
 // 1. Create directory structure

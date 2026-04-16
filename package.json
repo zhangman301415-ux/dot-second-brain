@@ -2,10 +2,23 @@
   "name": "second-brain",
   "version": "0.1.0",
   "description": "五层认知架构 Agent Skills — 知识萃取与上下文加载",
-  "private": true,
+  "type": "module",
+  "bin": {
+    "second-brain": "./bin/cli.js",
+    "second-brain-stop-hook": "./bin/stop-hook.js",
+    "second-brain-session-start-hook": "./bin/session-start-hook.js"
+  },
+  "files": [
+    "dist/",
+    "bin/",
+    "skills/",
+    "!dist/tests/",
+    "!dist/evals/"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-templates.mjs",
     "build:watch": "tsc --watch",
+    "prepublishOnly": "npm run build",
     "test": "npm run build && vitest run tests/**/*.test.ts",
     "test:watch": "vitest tests/**/*.test.ts"
   },

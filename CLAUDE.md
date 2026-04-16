@@ -34,21 +34,21 @@ npm run test:watch
 
 测试位于 `tests/`，区分单元测试与集成测试。测试入口在 `tests/helpers/setup.ts`，会自动编译项目并创建临时目录实现隔离。
 
-## 核心脚本（编译至 `dist/`）
+## CLI 命令（npm 包分发）
 
-| 源文件 | 用途 |
-|--------|------|
-| `skills/scripts/init-vault.ts` | 创建 Vault 目录结构，生成各层索引和 Identity 模板 |
-| `skills/scripts/mount-hooks.ts` | 复制 Hooks 到 `~/.claude/hooks/`，更新 settings.json |
-| `skills/refine-knowledge/scripts/queue-session.ts` | Stop Hook：备份会话记录，启动 tmux 后台生成摘要 |
-| `skills/context-loader/scripts/inject-context.ts` | SessionStart Hook：从归档注入上下文 |
+| 命令 | 用途 |
+|------|------|
+| `npx --yes second-brain init-vault <vault-path>` | 创建 Vault 目录结构，生成各层索引和 Identity 模板 |
+| `npx --yes second-brain mount-hooks` | 注册 Stop/SessionStart Hook 到 settings.json |
+| `npx --yes second-brain-stop-hook` | Stop Hook：备份会话记录，启动 tmux 后台生成摘要 |
+| `npx --yes second-brain-session-start-hook` | SessionStart Hook：从归档注入上下文 |
 
 ## Hook 机制
 
-- **Stop Hook**（会话结束时触发）：`queue-session.ts` — 捕获会话摘要，排队等待知识萃取
-- **SessionStart Hook**（会话开始时触发）：`inject-context.ts` — 加载当前任务、各层索引及任务相关上下文（Token 预算约 10K-15K）
+- **Stop Hook**（会话结束时触发）：`second-brain-stop-hook` — 捕获会话摘要，排队等待知识萃取
+- **SessionStart Hook**（会话开始时触发）：`second-brain-session-start-hook` — 加载当前任务、各层索引及任务相关上下文（Token 预算约 10K-15K）
 
-Hooks 在 `SKILL.md` frontmatter 中声明，通过 `mount-hooks.ts` 挂载。
+Hooks 在 `SKILL.md` frontmatter 中声明，通过 `second-brain mount-hooks` 挂载到 settings.json。
 
 ## 架构原则
 
