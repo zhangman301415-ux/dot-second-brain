@@ -25,7 +25,7 @@ created: auto
 ## [2026-03-01] - [角色: 角色变化]
 **建议**: 在 `profile.md` 中追加：开始学习 TypeScript 高级类型
 **证据**:
-- 2026-03-01 session: "我想深入学习 TypeScript 的泛型和条件类型"
+- [[04-Working/2026-03-01/agent-sessions|用户自述："我想深入学习 TypeScript 的泛型和条件类型"]]
 **状态**: rejected
 
 <!-- 以上条目为 30+ 天前的历史 pending，用于测试去重规则 -->
