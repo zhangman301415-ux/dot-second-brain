@@ -13,9 +13,10 @@ evals/
 ├── scripts/                   # vault-snapshot CLI 工具（TypeScript，编译至 dist/）
 │   └── vault-snapshot.ts      # Vault 快照：初始化、快照创建、diff 比较、目录复制
 ├── vaults/<skill_name>/       # 测试用例 vault 快照（源文件，不参与编译）
-│   └── <scenario>/
+│   ├── <vault_template>/      # vault 模板目录（初始状态）
+│   │   └── <vault files...>   # 模板的 vault 文件
+│   └── <eval-scenario>/
 │       └── eval.json          # 用例定义
-│       └── <vault files...>   # 初始 vault 状态
 └── workspace/<skill_name>/    # 评估输出（自动生成）
     └── iteration-N/
         ├── skills_snapshot/   # 本轮评估时 skill 目录的内容快照
@@ -49,6 +50,8 @@ Agent 会按下方流程自动执行。
 ### 步骤 1: 发现测试用例
 
 扫描 `evals/vaults/<skill_name>/` 下所有包含 `eval.json` 的子目录。每个子目录是一个测试用例。
+
+同时识别 vault 模板目录（如 `comprehensive/`）—— 模板目录不含 `eval.json`，仅提供初始 vault 状态。所有 eval 场景复用同一个模板。
 
 `eval.json` 格式：
 
@@ -99,8 +102,12 @@ node dist/evals/scripts/vault-snapshot.js copy skills/<skill_name> evals/workspa
 运行以下命令从模板初始化工作 vault：
 
 ```bash
-node dist/evals/scripts/vault-snapshot.js init evals/vaults/<skill_name>/<name> evals/workspace/<skill_name>/iteration-N/eval-<name>/vault
+# 找到该 skill 的 vault 模板目录（如 evals/vaults/<skill_name>/comprehensive/）
+# 以及对应的 eval.json 目录（如 evals/vaults/<skill_name>/eval-<name>/）
+node dist/evals/scripts/vault-snapshot.js init evals/vaults/<skill_name>/<vault_template> evals/workspace/<skill_name>/iteration-N/eval-<name>/vault
 ```
+
+每个 eval.json 对应一个评估维度，但所有场景共用同一个 vault 模板。
 
 #### 3b. 创建 initial 快照
 
