@@ -9,6 +9,7 @@
     "turning-points.md 包含 session 中的关键事件关键词（'转型'、'数据工程'、'Redis' 中至少 1 个）",
     "turning-points.md 包含因果连接词（'因为'、'导致'、'因此'、'所以' 中至少 1 个）后的具体结果描述",
     "turning-points.md 包含 2026-04-15 日期",
-    "中文撰写，不含英文段落"
+    "中文撰写，不含英文段落",
+    "turning-points.md 中的事件包含 wikilink 格式（[[...|...]]）"
   ]
 }
