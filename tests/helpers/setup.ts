@@ -1,5 +1,5 @@
 import { spawnSync } from "child_process";
-import { cpSync, readFileSync, writeFileSync, mkdirSync, realpathSync, mkdtempSync, existsSync, statSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync, realpathSync, mkdtempSync, existsSync } from "fs";
 import { tmpdir } from "os";
 import { mkdtemp } from "fs/promises";
 import { join, resolve } from "path";
@@ -8,7 +8,7 @@ const DIST_DIR = resolve(join(__dirname, "../../dist"));
 const SKILLS_ROOT = resolve(join(__dirname, "../.."));
 
 // Ensure dist exists before running tests
-if (!existsSync(join(DIST_DIR, "skills"))) {
+if (!existsSync(join(DIST_DIR, "commands"))) {
   const buildResult = spawnSync("npm", ["run", "build"], {
     encoding: "utf-8",
     stdio: "inherit",
@@ -34,7 +34,7 @@ export function runScript(
   options: { env?: Record<string, string>; cwd?: string } = {}
 ): { status: number; stdout: string; stderr: string } {
   const baseName = scriptName.replace(/\.(sh|ts)$/, "");
-  const scriptPath = join(DIST_DIR, "skills/scripts", `${baseName}.js`);
+  const scriptPath = join(DIST_DIR, "commands", `${baseName}.js`);
   try {
     const result = spawnSync("node", [scriptPath, ...args], {
       encoding: "utf-8",
@@ -75,32 +75,13 @@ export function setupVault(tmpDir: string): string {
   return vault;
 }
 
-export function setupSkills(tmpDir: string): string {
-  const skills = join(tmpDir, "skills");
-  const refineScripts = join(skills, "refine-knowledge/scripts");
-  const loaderScripts = join(skills, "context-loader/scripts");
-  mkdirSync(refineScripts, { recursive: true });
-  mkdirSync(loaderScripts, { recursive: true });
-
-  const refineSrc = join(SKILLS_ROOT, "skills/refine-knowledge/scripts/queue-session.ts");
-  const loaderSrc = join(SKILLS_ROOT, "skills/context-loader/scripts/inject-context.ts");
-
-  if (existsSync(refineSrc)) {
-    cpSync(refineSrc, join(refineScripts, "queue-session.ts"));
-  }
-  if (existsSync(loaderSrc)) {
-    cpSync(loaderSrc, join(loaderScripts, "inject-context.ts"));
-  }
-  return skills;
-}
-
 export function writeSettings(homeDir: string, settings: object): void {
-  const settingsPath = join(homeDir, ".claude/settings.json");
+  const settingsPath = join(homeDir, ".claude", "settings.json");
   mkdirSync(join(homeDir, ".claude"), { recursive: true });
   writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
 }
 
 export function readSettings(homeDir: string): Record<string, unknown> {
-  const settingsPath = join(homeDir, ".claude/settings.json");
+  const settingsPath = join(homeDir, ".claude", "settings.json");
   return JSON.parse(readFileSync(settingsPath, "utf-8"));
 }
