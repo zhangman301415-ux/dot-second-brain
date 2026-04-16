@@ -1,0 +1,16 @@
+{
+  "id": 8,
+  "name": "current-skills",
+  "prompt": "/refine-knowledge",
+  "description": "验证 current-skills.md 的更新质量",
+  "expected_output": "current-skills.md 新增 session 中提及的新技能",
+  "assertions": [
+    "00-Identity/capabilities/current-skills.md 内容发生变更",
+    "current-skills.md 包含关键词 '事件溯源'",
+    "current-skills.md 包含关键词 'CQRS'",
+    "新增的技能条目包含熟练度或等级描述（如 '掌握'、'熟练'、'初级' 等关键词）",
+    "未重复添加已有的技能条目（对比初始 vault 中的技能列表，无完全重复行）",
+    "current-skills.md 包含 2026-04-15 日期（frontmatter 或正文）",
+    "中文撰写，不含英文段落（允许技术术语）"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": 9,
+  "name": "growth-trajectory",
+  "prompt": "/refine-knowledge",
+  "description": "验证 growth-trajectory.md 的更新质量",
+  "expected_output": "growth-trajectory.md 记录能力演进轨迹",
+  "assertions": [
+    "00-Identity/capabilities/growth-trajectory.md 内容发生变更",
+    "growth-trajectory.md 包含 '数据工程' 关键词",
+    "growth-trajectory.md 同时提及 '后端' 和 '数据工程'，体现从前者到后者的方向变化",
+    "growth-trajectory.md 包含 2026-04-15 日期",
+    "中文撰写，不含英文段落"
+  ]
+}

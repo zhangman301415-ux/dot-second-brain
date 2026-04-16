@@ -1,0 +1,14 @@
+{
+  "id": 11,
+  "name": "work-style",
+  "prompt": "/refine-knowledge",
+  "description": "验证 work-style.md 的更新质量",
+  "expected_output": "work-style.md 新增工作偏好条目",
+  "assertions": [
+    "00-Identity/preferences/work-style.md 内容发生变更",
+    "work-style.md 包含 '接口契约' 或 '先写' 关键词（session 中的工作方式偏好）",
+    "work-style.md 包含具体行为描述（含 '当'、'先'、'再' 中至少 1 个关键词）",
+    "work-style.md 包含 2026-04-15 日期",
+    "中文撰写，不含英文段落"
+  ]
+}

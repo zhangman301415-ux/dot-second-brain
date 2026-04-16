@@ -1,0 +1,14 @@
+{
+  "id": 13,
+  "name": "communities",
+  "prompt": "/refine-knowledge",
+  "description": "验证 communities.md 的更新质量",
+  "expected_output": "communities.md 新增社群条目",
+  "assertions": [
+    "00-Identity/relationships/communities.md 内容发生变更",
+    "communities.md 包含 'Data Engineering Weekly' 关键词",
+    "communities.md 包含 'Apache Kafka' 关键词",
+    "communities.md 包含 2026-04-15 日期",
+    "中文撰写，不含英文段落（社群名称允许英文）"
+  ]
+}

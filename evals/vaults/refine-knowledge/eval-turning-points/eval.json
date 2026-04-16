@@ -1,0 +1,14 @@
+{
+  "id": 12,
+  "name": "turning-points",
+  "prompt": "/refine-knowledge",
+  "description": "验证 turning-points.md 的更新质量",
+  "expected_output": "turning-points.md 记录关键事件",
+  "assertions": [
+    "00-Identity/narrative/turning-points.md 内容发生变更",
+    "turning-points.md 包含 session 中的关键事件关键词（'转型'、'数据工程'、'Redis' 中至少 1 个）",
+    "turning-points.md 包含因果连接词（'因为'、'导致'、'因此'、'所以' 中至少 1 个）后的具体结果描述",
+    "turning-points.md 包含 2026-04-15 日期",
+    "中文撰写，不含英文段落"
+  ]
+}

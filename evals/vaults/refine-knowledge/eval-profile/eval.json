@@ -1,0 +1,16 @@
+{
+  "id": 7,
+  "name": "profile",
+  "prompt": "/refine-knowledge",
+  "description": "验证 profile.md 的更新质量",
+  "expected_output": "profile.md 被更新，包含从 session 提取的身份信息",
+  "assertions": [
+    "00-Identity/profile.md 内容发生变更（diff 中除 frontmatter 外有正文变化）",
+    "profile.md 包含关键词 '数据工程'（session 中的角色变化）",
+    "profile.md 包含 '后端' 或 'API' 关键词（原有角色背景）",
+    "profile.md 中包含 2026-04-15 日期（frontmatter 或正文）",
+    "profile.md 内容中包含 session 用户原话片段（如 '转型'、'数据工程' 中至少 1 个）",
+    "profile.md 中文撰写，不含英文段落（允许技术术语）",
+    "profile.md 文件未被清空或仅含模板占位符（正文超过 30 字）"
+  ]
+}
