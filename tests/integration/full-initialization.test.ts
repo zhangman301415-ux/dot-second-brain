@@ -4,16 +4,12 @@ import { join } from "path";
 import {
   createTempDirSync,
   runScript,
-  setupSkills,
   readSettings,
 } from "../helpers/setup";
-
-const SCRIPTS_DIR = join(__dirname, "../../skills/scripts");
 
 describe("full-initialization", () => {
   let TEST_TMP: string;
   let TEST_VAULT: string;
-  let TEST_SKILLS: string;
   let HOME: string;
 
   beforeEach(() => {
@@ -22,7 +18,6 @@ describe("full-initialization", () => {
     HOME = `${TEST_TMP}/home`;
     mkdirSync(join(HOME, ".claude"), { recursive: true });
     writeFileSync(join(HOME, ".claude/settings.json"), JSON.stringify({ hooks: {} }));
-    TEST_SKILLS = setupSkills(TEST_TMP);
   });
 
   afterEach(() => {
@@ -36,7 +31,7 @@ describe("full-initialization", () => {
     expect(existsSync(join(TEST_VAULT, "06-Archive/ingest/queue"))).toBe(true);
     expect(existsSync(join(TEST_VAULT, "00-Identity/profile.md"))).toBe(true);
     expect(existsSync(join(TEST_VAULT, "03-Episodic/index.md"))).toBe(true);
-    const configPath = join(SCRIPTS_DIR, "../.vault-config.json");
+    const configPath = join(TEST_TMP, ".vault-config.json");
     expect(existsSync(configPath)).toBe(true);
     const config = JSON.parse(readFileSync(configPath, "utf-8"));
     expect(config.initialized).toBe(true);
@@ -45,10 +40,8 @@ describe("full-initialization", () => {
   test("init then mount hooks", () => {
     const initResult = runScript("init-vault.ts", [TEST_VAULT]);
     expect(initResult.status).toBe(0);
-    const mountResult = runScript("mount-hooks.ts", [TEST_SKILLS], { env: { HOME } });
+    const mountResult = runScript("mount-hooks.ts", [], { env: { HOME } });
     expect(mountResult.status).toBe(0);
-    expect(existsSync(join(HOME, ".claude/hooks/queue-session.ts"))).toBe(true);
-    expect(existsSync(join(HOME, ".claude/hooks/inject-context.ts"))).toBe(true);
     const settings = readSettings(HOME);
     expect(settings.hooks).toHaveProperty("Stop");
     expect(settings.hooks).toHaveProperty("SessionStart");

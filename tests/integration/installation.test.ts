@@ -4,14 +4,12 @@ import { join } from "path";
 import {
   createTempDirSync,
   runScript,
-  setupSkills,
   readSettings,
 } from "../helpers/setup";
 
 describe("installation", () => {
   let TEST_TMP: string;
   let TEST_VAULT: string;
-  let TEST_SKILLS: string;
   let HOME: string;
   let CONFIG_FILE: string;
 
@@ -24,9 +22,8 @@ describe("installation", () => {
   beforeEach(() => {
     TEST_TMP = createTempDirSync();
     TEST_VAULT = `${TEST_TMP}/vault`;
-    TEST_SKILLS = setupSkills(TEST_TMP);
     HOME = `${TEST_TMP}/home`;
-    CONFIG_FILE = join(TEST_SKILLS, ".vault-config.json");
+    CONFIG_FILE = join(TEST_TMP, ".vault-config.json");
     mkdirSync(join(HOME, ".claude"), { recursive: true });
     writeFileSync(join(HOME, ".claude/settings.json"), JSON.stringify({ hooks: {} }));
   });
@@ -64,17 +61,13 @@ describe("installation", () => {
     expect(checkInitialized()).toBe("True");
 
     // Run mount
-    const mountResult = runScript("mount-hooks.ts", [TEST_SKILLS], { env: { HOME } });
+    const mountResult = runScript("mount-hooks.ts", [], { env: { HOME } });
     expect(mountResult.status).toBe(0);
 
     // Verify vault structure
     expect(existsSync(join(TEST_VAULT, "00-Identity/capabilities"))).toBe(true);
     expect(existsSync(join(TEST_VAULT, "06-Archive/ingest/queue"))).toBe(true);
     expect(existsSync(join(TEST_VAULT, "00-Identity/profile.md"))).toBe(true);
-
-    // Verify hooks mounted
-    expect(existsSync(join(HOME, ".claude/hooks/queue-session.ts"))).toBe(true);
-    expect(existsSync(join(HOME, ".claude/hooks/inject-context.ts"))).toBe(true);
 
     // Verify settings.json hooks registered
     const settings = readSettings(HOME);
@@ -84,24 +77,21 @@ describe("installation", () => {
     // Verify vault-config state
     const config = JSON.parse(readFileSync(CONFIG_FILE, "utf-8"));
     expect(config.vaultPath).toBe(TEST_VAULT);
-    expect(config.hooksMounted).toBe(true);
   });
 
   test("re-run install does not overwrite existing config", () => {
     // First complete install
     runScript("init-vault.ts", [TEST_VAULT, CONFIG_FILE]);
-    runScript("mount-hooks.ts", [TEST_SKILLS], { env: { HOME } });
+    runScript("mount-hooks.ts", [], { env: { HOME } });
 
     const config1 = JSON.parse(readFileSync(CONFIG_FILE, "utf-8"));
     const vaultPathBefore = config1.vaultPath;
-    const mountedBefore = config1.hooksMounted;
 
     // Re-run install
     runScript("init-vault.ts", [TEST_VAULT, CONFIG_FILE]);
-    runScript("mount-hooks.ts", [TEST_SKILLS], { env: { HOME } });
+    runScript("mount-hooks.ts", [], { env: { HOME } });
 
     const config2 = JSON.parse(readFileSync(CONFIG_FILE, "utf-8"));
     expect(config2.vaultPath).toBe(vaultPathBefore);
-    expect(config2.hooksMounted).toBe(mountedBefore);
   });
 });
