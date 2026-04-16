@@ -5,8 +5,8 @@
  * 1. 扫描 evals/vaults/<skill_name>/{scenario}/eval.json 发现测试用例
  * 2. 对每个用例：从快照恢复 vault → 记录初始状态 → 触发 skill → 记录最终状态
  * 3. 比较 vault diff
- * 4. 断言评分
- * 5. 聚合结果
+ * 4. LLM 断言评分
+ * 5. 聚合结果，与上一轮迭代对比
  *
  * 用法:
  *   node dist/evals/runner/runner.js <skill_name> [--skill-path <path>]
@@ -17,19 +17,16 @@
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "fs";
 import { dirname, join, resolve } from "path";
-import { initVaultFromTemplate, createSnapshot, diffVault, formatVaultDiff, VaultDiff } from "./vault-snapshot.js";
+import { initVaultFromTemplate, createSnapshot, diffVault, formatVaultDiff } from "./vault-snapshot.js";
 import { gradeEval, GradingResult } from "./grader.js";
 
 const THIS_DIR = dirname(new URL(import.meta.url).pathname);
 // vault 数据（markdown）在源码 evals/ 下，不在 dist/ 中
-// 从 dist/evals/runner 找源码根目录：寻找包含 evals/runner/runner.js 源码的目录
 function findProjectRoot(distThisDir: string): string {
-  // dist/evals/runner → 上 3 级 = 项目根
   const candidate = resolve(join(distThisDir, "..", "..", ".."));
   if (existsSync(join(candidate, "evals", "vaults"))) {
     return candidate;
   }
-  // 回退：上 2 级
   const fallback = resolve(join(distThisDir, "..", ".."));
   return fallback;
 }
@@ -49,12 +46,20 @@ interface EvalCase {
   assertions: string[];
 }
 
+interface IterationSummary {
+  pass_rate: { mean: number; stddev: number };
+  time_seconds: { mean: number; stddev: number };
+  tokens: { mean: number; stddev: number };
+}
+
 interface BenchmarkResult {
-  run_summary: Record<string, {
-    pass_rate: { mean: number; stddev: number };
-    time_seconds: { mean: number; stddev: number };
-    tokens: { mean: number; stddev: number };
-  }>;
+  current_iteration: number;
+  iterations: Record<string, IterationSummary>;
+  delta?: {
+    pass_rate: number;
+    time_seconds: number;
+    tokens: number;
+  };
 }
 
 /**
@@ -89,7 +94,7 @@ function loadEvalCases(skillName: string): EvalCase[] {
   return cases;
 }
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   const skillName = args[0];
   if (!skillName) {
@@ -100,7 +105,6 @@ function main() {
   const skillPathFlag = args.indexOf("--skill-path");
   const skillPath = skillPathFlag >= 0 ? resolve(args[skillPathFlag + 1]) : resolve(`skills/${skillName}`);
 
-  // 从 vault 快照目录加载测试用例
   const evalCases = loadEvalCases(skillName);
   if (evalCases.length === 0) {
     console.error(`未在 ${join(VAULTS_DIR, skillName)} 下找到任何 eval.json`);
@@ -111,7 +115,6 @@ function main() {
   console.log(`测试用例数: ${evalCases.length}`);
   console.log(`Skill 路径: ${skillPath}\n`);
 
-  // 创建 iteration 目录
   const iterationNum = getNextIterationNumber(skillName);
   const iterationDir = join(WORKSPACE_DIR, `${skillName}/iteration-${iterationNum}`);
   mkdirSync(iterationDir, { recursive: true });
@@ -119,74 +122,44 @@ function main() {
   const allGradingResults: Record<string, GradingResult> = {};
   const allTiming: Record<string, { total_tokens: number; duration_ms: number }> = {};
 
-  runNextEvalInLoop(evalCases, skillPath, iterationDir, iterationNum, allGradingResults, allTiming, 0);
-}
+  for (let i = 0; i < evalCases.length; i++) {
+    const evalCase = evalCases[i];
 
-/**
- * 顺序执行 eval 用例，每个用例完成后等待用户确认
- */
-function runNextEvalInLoop(
-  evalCases: EvalCase[],
-  skillPath: string,
-  iterationDir: string,
-  iterationNum: number,
-  allGradingResults: Record<string, GradingResult>,
-  allTiming: Record<string, { total_tokens: number; duration_ms: number }>,
-  index: number
-) {
-  if (index >= evalCases.length) {
-    // 所有用例完成，聚合结果
-    const benchmark = computeBenchmark(allGradingResults, allTiming);
-    writeFileSync(join(iterationDir, "benchmark.json"), JSON.stringify(benchmark, null, 2));
+    console.log(`\n--- 运行 #${evalCase.id}: ${evalCase.name} ---`);
+    console.log(`描述: ${evalCase.description}`);
 
-    console.log("\n=== 评估完成 ===\n");
-    console.log(`Benchmark 已保存: ${join(iterationDir, "benchmark.json")}`);
-    printBenchmark(benchmark);
-    return;
-  }
+    const startTime = Date.now();
 
-  const evalCase = evalCases[index];
+    const templateDir = resolve(EVALS_DIR, evalCase.initial_vault);
+    if (!existsSync(templateDir)) {
+      console.error(`  初始 vault 快照不存在: ${templateDir}`);
+      console.log(`  跳过 #${evalCase.id}\n`);
+      continue;
+    }
 
-  console.log(`\n--- 运行 #${evalCase.id}: ${evalCase.name} ---`);
-  console.log(`描述: ${evalCase.description}`);
+    const evalDir = join(iterationDir, `eval-${evalCase.name}`);
+    const initialVaultDir = join(evalDir, "initial_vault");
+    const finalVaultDir = join(evalDir, "final_vault");
+    const workingVaultDir = join(evalDir, "vault");
 
-  const startTime = Date.now();
+    mkdirSync(evalDir, { recursive: true });
 
-  // 1. 从快照恢复 vault
-  const templateDir = resolve(EVALS_DIR, evalCase.initial_vault);
-  if (!existsSync(templateDir)) {
-    console.error(`  初始 vault 快照不存在: ${templateDir}`);
-    console.log(`  跳过 #${evalCase.id}\n`);
-    runNextEvalInLoop(evalCases, skillPath, iterationDir, iterationNum, allGradingResults, allTiming, index + 1);
-    return;
-  }
+    initVaultFromTemplate(templateDir, workingVaultDir);
+    console.log(`  Vault 从模板恢复: ${evalCase.initial_vault}`);
 
-  const evalDir = join(iterationDir, `eval-${evalCase.name}`);
-  const initialVaultDir = join(evalDir, "initial_vault");
-  const finalVaultDir = join(evalDir, "final_vault");
-  const workingVaultDir = join(evalDir, "vault");
+    createSnapshot(workingVaultDir, initialVaultDir);
 
-  mkdirSync(evalDir, { recursive: true });
+    console.log(`  Prompt: ${evalCase.prompt}`);
+    console.log(`  Working Vault: ${workingVaultDir}`);
+    console.log(`  Skill Path: ${skillPath}`);
+    console.log(`  ⚠  现在需要触发 skill 执行。`);
+    console.log(`  执行完成后按 Enter 继续评分，或按 Ctrl+C 中止...`);
 
-  // 复制快照到 working vault
-  initVaultFromTemplate(templateDir, workingVaultDir);
-  console.log(`  Vault 从模板恢复: ${evalCase.initial_vault}`);
+    await new Promise<void>(resolve => {
+      process.stdin.resume();
+      process.stdin.once("data", () => resolve());
+    });
 
-  // 创建初始快照副本（用于 diff）
-  createSnapshot(workingVaultDir, initialVaultDir);
-
-  // 2. 触发 skill（这里需要子 agent 或外部触发）
-  console.log(`  Prompt: ${evalCase.prompt}`);
-  console.log(`  Working Vault: ${workingVaultDir}`);
-  console.log(`  Skill Path: ${skillPath}`);
-  console.log(`  ⚠  现在需要触发 skill 执行。`);
-  console.log(`  执行完成后按 Enter 继续评分，或按 Ctrl+C 中止...`);
-
-  // 等待用户确认 skill 执行完成
-  const stdin = process.stdin;
-  stdin.resume();
-  stdin.once("data", () => {
-    // 3. 捕获最终状态
     createSnapshot(workingVaultDir, finalVaultDir);
 
     const duration = Date.now() - startTime;
@@ -195,19 +168,14 @@ function runNextEvalInLoop(
       duration_ms: duration,
     };
 
-    // 4. 比较 vault diff
     const diff = diffVault(initialVaultDir, finalVaultDir);
     const diffText = formatVaultDiff(diff);
     writeFileSync(join(evalDir, "vault_diff.txt"), diffText);
     console.log(`\n  Vault Diff:\n${indent(diffText, "    ")}`);
 
-    // 5. 断言评分
-    const grading = gradeEval(evalCase.assertions, diff, finalVaultDir, allTiming[evalCase.name]);
+    console.log(`  🤖 正在调用 LLM 评分...`);
+    const grading = await gradeEval(evalCase.assertions, diff, initialVaultDir, finalVaultDir);
     allGradingResults[evalCase.name] = grading;
-    allTiming[evalCase.name] = {
-      ...allTiming[evalCase.name],
-      total_tokens: 0,
-    };
 
     console.log(`\n  评分结果:`);
     for (const result of grading.assertion_results) {
@@ -217,35 +185,63 @@ function runNextEvalInLoop(
     }
     console.log(`  通过率: ${grading.summary.passed}/${grading.summary.total} (${(grading.summary.pass_rate * 100).toFixed(0)}%)`);
 
-    // 保存 grading.json 和 timing.json
     writeFileSync(join(evalDir, "grading.json"), JSON.stringify(grading, null, 2));
     writeFileSync(join(evalDir, "timing.json"), JSON.stringify(allTiming[evalCase.name], null, 2));
 
     console.log(`\n  结果已保存: ${evalDir}`);
     console.log("--- 完成 ---\n");
+  }
 
-    // 继续下一个
-    runNextEvalInLoop(evalCases, skillPath, iterationDir, iterationNum, allGradingResults, allTiming, index + 1);
-  });
+  // 聚合结果
+  const benchmark = computeBenchmark(allGradingResults, allTiming, skillName, iterationNum);
+  writeFileSync(join(iterationDir, "benchmark.json"), JSON.stringify(benchmark, null, 2));
+
+  console.log("\n=== 评估完成 ===\n");
+  console.log(`Benchmark 已保存: ${join(iterationDir, "benchmark.json")}`);
+  printBenchmark(benchmark);
 }
 
 function computeBenchmark(
   results: Record<string, GradingResult>,
-  timing: Record<string, { total_tokens: number; duration_ms: number }>
+  timing: Record<string, { total_tokens: number; duration_ms: number }>,
+  skillName: string,
+  currentIteration: number
 ): BenchmarkResult {
   const passRates = Object.values(results).map(r => r.summary.pass_rate);
   const times = Object.values(timing).map(t => t.duration_ms / 1000);
   const tokens = Object.values(timing).map(t => t.total_tokens);
 
-  return {
-    run_summary: {
-      with_skill: {
-        pass_rate: stats(passRates),
-        time_seconds: stats(times),
-        tokens: stats(tokens),
-      },
+  const currentSummary: IterationSummary = {
+    pass_rate: stats(passRates),
+    time_seconds: stats(times),
+    tokens: stats(tokens),
+  };
+
+  const benchmark: BenchmarkResult = {
+    current_iteration: currentIteration,
+    iterations: {
+      [`iteration-${currentIteration}`]: currentSummary,
     },
   };
+
+  // 与上一轮迭代对比
+  const prevBenchFile = join(WORKSPACE_DIR, `${skillName}/iteration-${currentIteration - 1}/benchmark.json`);
+  if (existsSync(prevBenchFile)) {
+    const prevBenchmark: BenchmarkResult = JSON.parse(readFileSync(prevBenchFile, "utf-8"));
+    const prevIteration = currentIteration - 1;
+    const prevSummary = prevBenchmark.iterations[`iteration-${prevIteration}`];
+
+    if (prevSummary) {
+      benchmark.iterations[`iteration-${prevIteration}`] = prevSummary;
+      benchmark.delta = {
+        pass_rate: currentSummary.pass_rate.mean - prevSummary.pass_rate.mean,
+        time_seconds: currentSummary.time_seconds.mean - prevSummary.time_seconds.mean,
+        tokens: currentSummary.tokens.mean - prevSummary.tokens.mean,
+      };
+    }
+  }
+
+  return benchmark;
 }
 
 function stats(values: number[]): { mean: number; stddev: number } {
@@ -271,15 +267,27 @@ function getNextIterationNumber(skillName: string): number {
 }
 
 function printBenchmark(benchmark: BenchmarkResult) {
-  const summary = benchmark.run_summary.with_skill;
+  const current = benchmark.iterations[`iteration-${benchmark.current_iteration}`];
   console.log("\n聚合结果:");
-  console.log(`  平均通过率: ${(summary.pass_rate.mean * 100).toFixed(0)}% (σ=${(summary.pass_rate.stddev * 100).toFixed(0)}%)`);
-  console.log(`  平均耗时: ${summary.time_seconds.mean.toFixed(1)}s (σ=${summary.time_seconds.stddev.toFixed(1)}s)`);
-  console.log(`  平均 Token: ${summary.tokens.mean.toFixed(0)} (σ=${summary.tokens.stddev.toFixed(0)})`);
+  console.log(`  迭代: #${benchmark.current_iteration}`);
+  console.log(`  平均通过率: ${(current.pass_rate.mean * 100).toFixed(0)}% (σ=${(current.pass_rate.stddev * 100).toFixed(0)}%)`);
+  console.log(`  平均耗时: ${current.time_seconds.mean.toFixed(1)}s (σ=${current.time_seconds.stddev.toFixed(1)}s)`);
+  console.log(`  平均 Token: ${current.tokens.mean.toFixed(0)} (σ=${current.tokens.stddev.toFixed(0)})`);
+
+  if (benchmark.delta) {
+    console.log("\n与上一轮对比:");
+    const d = benchmark.delta;
+    console.log(`  通过率变化: ${d.pass_rate > 0 ? "+" : ""}${(d.pass_rate * 100).toFixed(0)}%`);
+    console.log(`  耗时变化: ${d.time_seconds > 0 ? "+" : ""}${d.time_seconds.toFixed(1)}s`);
+    console.log(`  Token 变化: ${d.tokens > 0 ? "+" : ""}${d.tokens.toFixed(0)}`);
+  }
 }
 
 function indent(text: string, prefix: string): string {
   return text.split("\n").map(line => prefix + line).join("\n");
 }
 
-main();
+main().catch(err => {
+  console.error("评估运行出错:", err);
+  process.exit(1);
+});
