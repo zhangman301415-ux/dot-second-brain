@@ -53,6 +53,8 @@
 
    **turning-points.md 格式**：事件列使用 `[[源路径|事件摘要]]` 格式的 wikilink，源路径指向触发该转折的文件（如 `03-Episodic/2026-04-15-数据管道架构选型`、`02-Semantic/重构思维模式` 等，不限层级）。
 
+**统一追溯规则**：所有 Identity 文件（profile.md、current-skills.md、core-values.md、work-style.md、communities.md、pending-updates.md、growth-trajectory.md、turning-points.md）的每条声明必须附带 `[[源路径\|摘要]]` 格式的 wikilink 来源引用（注意表格中管道符需转义为 `\\\|`）。源路径相对于 vault 根目录，指向触发该声明的 Episodic、Semantic、Procedural 或 Working 文件。不接受无来源的 Identity 声明。
+
 ## Step 3: 检测可沉淀方法（用户确认 + 分流）
 
 1. 扫描新生成的 Episodic 文件，检测模式：
