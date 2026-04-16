@@ -11,6 +11,7 @@
     "profile.md 中包含 2026-04-15 日期（frontmatter 或正文）",
     "profile.md 内容中包含 session 用户原话片段（如 '转型'、'数据工程' 中至少 1 个）",
     "profile.md 中文撰写，不含英文段落（允许技术术语）",
-    "profile.md 文件未被清空或仅含模板占位符（正文超过 30 字）"
+    "profile.md 文件未被清空或仅含模板占位符（正文超过 30 字）",
+    "profile.md 角色表格中包含 wikilink 来源（[[...|...]]）"
   ]
 }
