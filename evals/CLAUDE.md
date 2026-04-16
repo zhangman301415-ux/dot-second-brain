@@ -11,13 +11,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 evals/
 ├── runner/                    # vault-snapshot CLI 工具（TypeScript，编译至 dist/）
-│   └── vault-snapshot.ts      # Vault 快照：初始化、快照创建、diff 比较
+│   └── vault-snapshot.ts      # Vault 快照：初始化、快照创建、diff 比较、目录复制
 ├── vaults/<skill_name>/       # 测试用例 vault 快照（源文件，不参与编译）
 │   └── <scenario>/
 │       └── eval.json          # 用例定义
 │       └── <vault files...>   # 初始 vault 状态
 └── workspace/<skill_name>/    # 评估输出（自动生成）
     └── iteration-N/
+        ├── skills_snapshot/   # 本轮评估时 skill 目录的内容快照
         ├── eval-<name>/
         │   ├── initial_vault/   # 运行前快照
         │   ├── final_vault/     # 运行后快照
@@ -79,6 +80,16 @@ Agent 会按下方流程自动执行。
 
 创建迭代目录：`evals/workspace/<skill_name>/iteration-N/`
 
+#### 2a. 创建 skill 内容快照
+
+将当前 skill 目录完整复制到 `evals/workspace/<skill_name>/iteration-N/skills_snapshot/`：
+
+```bash
+node dist/evals/runner/vault-snapshot.js copy skills/<skill_name> evals/workspace/<skill_name>/iteration-N/skills_snapshot
+```
+
+这样每一轮迭代都保存当时使用的 skill 内容（SKILL.md、脚本文件等），便于后续对比 skill 的变更对评估结果的影响。
+
 ### 步骤 3: 对每个用例循环执行
 
 #### 3a. 初始化 vault
@@ -102,7 +113,7 @@ node dist/evals/runner/vault-snapshot.js snapshot evals/workspace/<skill_name>/i
 启动一个 subagent，向其提供以下信息：
 - eval.json 中的 `prompt`、`description`、`expected_output`
 - 工作 vault 目录路径
-- Skill 的 SKILL.md 内容（从 `skills/<skill_name>/SKILL.md` 读取，如果该文件存在）
+- Skill 的 SKILL.md 内容（从 `evals/workspace/<skill_name>/iteration-N/skills_snapshot/SKILL.md` 读取，如果该文件存在）
 
 Subagent 的 prompt 模板：
 
@@ -264,4 +275,7 @@ node dist/evals/runner/vault-snapshot.js snapshot <sourceDir> <targetDir>
 
 # 比较两个快照（text 或 json 格式）
 node dist/evals/runner/vault-snapshot.js diff <beforeDir> <afterDir> [--format=text|json]
+
+# 复制目录（用于 skill 快照）
+node dist/evals/runner/vault-snapshot.js copy <sourceDir> <targetDir>
 ```

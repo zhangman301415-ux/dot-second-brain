@@ -6,6 +6,7 @@
  * - 创建快照（运行前状态）
  * - 恢复快照（迭代重置）
  * - 比较快照（生成 vault diff）
+ * - 复制目录（用于 skill 快照等场景）
  */
 
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "fs";
@@ -19,6 +20,16 @@ export function initVaultFromTemplate(templateDir: string, vaultPath: string): v
     rmSync(vaultPath, { recursive: true });
   }
   copyDirRecursive(templateDir, vaultPath);
+}
+
+/**
+ * 复制任意目录（用于 skill 快照等场景）
+ */
+export function copyDirectory(src: string, dest: string): void {
+  if (!existsSync(src)) {
+    throw new Error(`Source directory does not exist: ${src}`);
+  }
+  copyDirRecursive(src, dest);
 }
 
 /**
@@ -149,6 +160,7 @@ function printUsage(): void {
   console.error("  vault-snapshot init <templateDir> <targetDir>");
   console.error("  vault-snapshot snapshot <sourceDir> <targetDir>");
   console.error("  vault-snapshot diff <beforeDir> <afterDir> [--format=text|json]");
+  console.error("  vault-snapshot copy <sourceDir> <targetDir>");
   process.exit(1);
 }
 
@@ -190,6 +202,12 @@ function main(): void {
         } else {
           console.log(formatVaultDiff(diff));
         }
+        break;
+
+      case "copy":
+        if (args.length < 3) printUsage();
+        copyDirectory(args[1], args[2]);
+        console.log(`Directory copied: ${args[1]} -> ${args[2]}`);
         break;
 
       default:
