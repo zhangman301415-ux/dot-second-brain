@@ -3,9 +3,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { spawn } from "child_process";
 import { dirname, join } from "path";
 
-const SCRIPT_DIR = dirname(new URL(import.meta.url).pathname);
+const COMMANDS_DIR = dirname(new URL(import.meta.url).pathname);
 const PROMPT_TEMPLATE = readFileSync(
-  join(SCRIPT_DIR, "..", "references", "session-summary-template.md"),
+  join(COMMANDS_DIR, "..", "templates", "session-summary-template.md"),
   "utf-8"
 );
 
