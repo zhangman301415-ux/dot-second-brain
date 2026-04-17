@@ -40,7 +40,7 @@ Skills 安装后会自动注册到 Claude Code，新会话中即可使用。
 
 首次触发时仅会询问 vault 路径，Hook 注册无需用户确认。
 
-默认 Vault 路径：`~/Documents/obsidian-workspace/obsidian_workspace`
+默认 Vault 路径：`~/Documents/SecondBrain`
 
 ## 卸载
 

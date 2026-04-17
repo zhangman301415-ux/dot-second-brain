@@ -54,7 +54,7 @@
 
 ```bash
 #!/usr/bin/env bash
-VAULT="${OBSIDIAN_VAULT_PATH:-$HOME/Documents/obsidian-workspace/obsidian_workspace}"
+VAULT="${OBSIDIAN_VAULT_PATH:-$HOME/Documents/SecondBrain}"
 CONTEXT="$VAULT/06-Archive/ingest/context/latest.md"
 
 [ -f "$CONTEXT" ] && cat "$CONTEXT"

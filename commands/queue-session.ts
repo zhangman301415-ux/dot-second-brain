@@ -11,7 +11,7 @@ const PROMPT_TEMPLATE = readFileSync(
 );
 
 const CONFIG_PATH = join(homedir(), ".claude", "second-brain", ".vault-config.json");
-const DEFAULT_VAULT = `${homedir()}/Documents/obsidian-workspace/obsidian_workspace`;
+const DEFAULT_VAULT = `${homedir()}/Documents/SecondBrain`;
 
 function resolveVault(): string {
   if (process.env.OBSIDIAN_VAULT_PATH) return process.env.OBSIDIAN_VAULT_PATH;
