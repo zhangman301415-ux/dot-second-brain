@@ -2,6 +2,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { spawn } from "child_process";
 import { dirname, join } from "path";
+import { homedir } from "os";
 
 const COMMANDS_DIR = dirname(new URL(import.meta.url).pathname);
 const PROMPT_TEMPLATE = readFileSync(
@@ -9,7 +10,21 @@ const PROMPT_TEMPLATE = readFileSync(
   "utf-8"
 );
 
-const VAULT = process.env.OBSIDIAN_VAULT_PATH ?? `${process.env.HOME}/Documents/obsidian-workspace/obsidian_workspace`;
+const CONFIG_PATH = join(homedir(), ".claude", "second-brain", ".vault-config.json");
+const DEFAULT_VAULT = `${homedir()}/Documents/obsidian-workspace/obsidian_workspace`;
+
+function resolveVault(): string {
+  if (process.env.OBSIDIAN_VAULT_PATH) return process.env.OBSIDIAN_VAULT_PATH;
+  try {
+    if (existsSync(CONFIG_PATH)) {
+      const config = JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
+      if (config.vaultPath) return config.vaultPath;
+    }
+  } catch { /* ignore */ }
+  return DEFAULT_VAULT;
+}
+
+const VAULT = resolveVault();
 const QUEUE_DIR = join(VAULT, "06-Archive/ingest/queue");
 const WORKING_DIR = join(VAULT, "04-Working");
 
