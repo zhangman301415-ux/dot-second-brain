@@ -15,7 +15,7 @@ hooks:
 
 ## 触发时机
 
-用户输入 `/refine-knowledge` 时触发，或 Agent 检测到 `04-Working/` 下有未处理的 `agent-sessions.md` 时主动提醒用户。
+用户输入 `/refine-knowledge` 时触发，或 Agent 检测到 `04-Working/` 下有未处理的 `agent-session/` 目录时主动提醒用户。
 
 ## 认知架构
 
