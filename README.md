@@ -17,7 +17,7 @@
 npm install -g second-brain-cli
 ```
 
-或通过 npx 直接运行：
+安装完成后即可使用：
 
 ```bash
 second-brain-cli mount-hooks
