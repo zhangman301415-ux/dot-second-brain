@@ -145,7 +145,7 @@ Skill 安装后即可使用，无需额外配置：
 
 - **触发方式**：`/refine-knowledge` 命令或 `Stop` hook（会话结束自动触发）
 - **核心流程**：
-  1. 扫描未处理的会话摘要（`04-Working/YYYY-MM-DD/agent-sessions.md`）
+  1. 扫描未处理的会话摘要（`04-Working/YYYY-MM-DD/agent-session/{任务名}.md`）
   2. 提炼情景记忆 → `03-Episodic/`
   3. 检测 Identity 信号（角色/能力/价值观变化）→ 提案制更新 `00-Identity/`
   4. 检测可沉淀方法 → 流向 Procedural 或 Semantic

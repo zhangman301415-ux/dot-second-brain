@@ -2,7 +2,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { spawn } from "child_process";
 import { dirname, join } from "path";
-import { homedir } from "os";
+import { homedir, tmpdir } from "os";
 
 const COMMANDS_DIR = dirname(new URL(import.meta.url).pathname);
 const PROMPT_TEMPLATE = readFileSync(
@@ -27,6 +27,23 @@ function resolveVault(): string {
 const VAULT = resolveVault();
 const QUEUE_DIR = join(VAULT, "06-Archive/ingest/queue");
 const WORKING_DIR = join(VAULT, "04-Working");
+
+function buildRenameScript(tmpFile: string, fallback: string): string {
+  const scriptPath = join(tmpdir(), `sb-rename-${Date.now()}.js`);
+  const script = `
+const fs=require('fs'),p=require('path');
+const f=process.argv[1],fallback=process.argv[2];
+if(!fs.existsSync(f))process.exit(0);
+const c=fs.readFileSync(f,'utf-8');
+const m=c.match(/\\*\\*任务：\\*\\*\\s*(.+?)(?:\\n|$)/);
+let s=m?m[1].trim():fallback;
+s=s.replace(/[^a-zA-Z0-9\\u4e00-\\u9fff]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,80);
+if(!s)s=fallback;
+fs.renameSync(f,p.join(p.dirname(f),s+'.md'));
+`.trim();
+  writeFileSync(scriptPath, script);
+  return scriptPath;
+}
 
 let payload = "";
 process.stdin.setEncoding("utf-8");
@@ -57,8 +74,11 @@ process.stdin.on("end", () => {
   writeFileSync(join(QUEUE_DIR, backupName), readFileSync(transcriptPath));
 
   const workingDateDir = join(WORKING_DIR, now.toISOString().slice(0, 10));
-  mkdirSync(workingDateDir, { recursive: true });
+  const sessionDir = join(workingDateDir, "agent-session");
+  mkdirSync(sessionDir, { recursive: true });
   const sessionName = `refine-${sessionId.slice(0, 8)}`;
+  const tmpFile = join(sessionDir, `${sessionId}.md`);
+  const renameScript = buildRenameScript(tmpFile, sessionId.slice(0, 8));
 
   const hasSession = spawn("tmux", ["has-session", "-t", sessionName], { stdio: "ignore" });
   hasSession.on("close", (code) => {
@@ -68,8 +88,7 @@ process.stdin.on("end", () => {
       .replace("{{DATE}}", date)
       .replace("{{SESSION_ID}}", sessionId);
 
-    const sessionFile = join(workingDateDir, `refine-${sessionId.slice(0, 8)}.md`);
-    const cmd = `claude -p --resume '${sessionId}' --permission-mode auto '${summaryPrompt}' > '${sessionFile}' 2>/dev/null; tmux kill-session -t '${sessionName}'`;
+    const cmd = `claude -p --resume '${sessionId}' --permission-mode auto '${summaryPrompt}' > '${tmpFile}' 2>/dev/null && node '${renameScript}' '${tmpFile}' '${sessionId.slice(0, 8)}' && rm -f '${renameScript}'; tmux kill-session -t '${sessionName}'`;
 
     const tmuxProc = spawn("tmux", ["new-session", "-d", "-s", sessionName, cmd]);
     tmuxProc.on("error", () => process.exit(0));
