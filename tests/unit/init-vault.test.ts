@@ -1,11 +1,11 @@
 import { describe, test, expect, beforeEach, afterEach } from "vitest";
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "fs";
+import { join } from "path";
 import { createTempDirSync, runScript } from "../helpers/setup";
 
 describe("init-vault", () => {
   let TEST_TMP: string;
   let TEST_VAULT: string;
-  let CONFIG_FILE: string;
 
   beforeEach(() => {
     TEST_TMP = createTempDirSync();
@@ -17,8 +17,9 @@ describe("init-vault", () => {
 
   function _runInit() {
     TEST_VAULT = `${TEST_TMP}/vault`;
-    CONFIG_FILE = `${TEST_TMP}/config.json`;
-    return runScript("init-vault.ts", [TEST_VAULT, CONFIG_FILE]);
+    const configDir = `${TEST_TMP}/config`;
+    mkdirSync(configDir, { recursive: true });
+    return runScript("init-vault.ts", [TEST_VAULT], { env: { SECOND_BRAIN_CONFIG_DIR: configDir } });
   }
 
   test("exit 1 with no args", () => {
@@ -84,7 +85,9 @@ describe("init-vault", () => {
 
   test("template files contain correct frontmatter", () => {
     TEST_VAULT = `${TEST_TMP}/vault`;
-    runScript("init-vault.ts", [TEST_VAULT]);
+    const configDir = `${TEST_TMP}/config`;
+    mkdirSync(configDir, { recursive: true });
+    runScript("init-vault.ts", [TEST_VAULT], { env: { SECOND_BRAIN_CONFIG_DIR: configDir } });
     const profile = readFileSync(`${TEST_VAULT}/00-Identity/profile.md`, "utf-8");
     expect(profile).toContain("---");
     expect(profile).toContain("type: profile");
@@ -101,10 +104,11 @@ describe("init-vault", () => {
 
   test("second run does not overwrite existing files (idempotent)", () => {
     TEST_VAULT = `${TEST_TMP}/vault`;
-    CONFIG_FILE = `${TEST_TMP}/config.json`;
-    runScript("init-vault.ts", [TEST_VAULT, CONFIG_FILE]);
+    const configDir = `${TEST_TMP}/config`;
+    mkdirSync(configDir, { recursive: true });
+    runScript("init-vault.ts", [TEST_VAULT], { env: { SECOND_BRAIN_CONFIG_DIR: configDir } });
     const contentBefore = readFileSync(`${TEST_VAULT}/00-Identity/profile.md`, "utf-8");
-    runScript("init-vault.ts", [TEST_VAULT, CONFIG_FILE]);
+    runScript("init-vault.ts", [TEST_VAULT], { env: { SECOND_BRAIN_CONFIG_DIR: configDir } });
     const contentAfter = readFileSync(`${TEST_VAULT}/00-Identity/profile.md`, "utf-8");
     expect(contentBefore).toBe(contentAfter);
   });
@@ -112,23 +116,17 @@ describe("init-vault", () => {
   test("config written to vault-config.json", () => {
     const result = _runInit();
     expect(result.status).toBe(0);
-    const config = JSON.parse(readFileSync(CONFIG_FILE, "utf-8"));
+    const configPath = join(TEST_TMP, "config", ".vault-config.json");
+    const config = JSON.parse(readFileSync(configPath, "utf-8"));
     expect(config.vaultPath).toBe(TEST_VAULT);
     expect(config.initialized).toBe(true);
   });
 
-  test("custom config path parameter", () => {
-    TEST_VAULT = `${TEST_TMP}/vault`;
-    const customConfig = `${TEST_TMP}/custom/path/config.json`;
-    mkdirSync(`${TEST_TMP}/custom/path`, { recursive: true });
-    const result = runScript("init-vault.ts", [TEST_VAULT, customConfig]);
-    expect(result.status).toBe(0);
-    expect(existsSync(customConfig)).toBe(true);
-  });
-
   test("exit 2 when mkdir fails", () => {
     writeFileSync(`${TEST_TMP}/vault`, "blocking file");
-    const result = runScript("init-vault.ts", [`${TEST_TMP}/vault`]);
+    const configDir = `${TEST_TMP}/config`;
+    mkdirSync(configDir, { recursive: true });
+    const result = runScript("init-vault.ts", [`${TEST_TMP}/vault`], { env: { SECOND_BRAIN_CONFIG_DIR: configDir } });
     expect(result.status).toBe(2);
   });
 });

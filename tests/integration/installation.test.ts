@@ -11,11 +11,12 @@ describe("installation", () => {
   let TEST_TMP: string;
   let TEST_VAULT: string;
   let HOME: string;
-  let CONFIG_FILE: string;
+  let CONFIG_DIR: string;
 
   function checkInitialized(): string {
-    if (!existsSync(CONFIG_FILE)) return "False";
-    const config = JSON.parse(readFileSync(CONFIG_FILE, "utf-8"));
+    const configPath = join(CONFIG_DIR, ".vault-config.json");
+    if (!existsSync(configPath)) return "False";
+    const config = JSON.parse(readFileSync(configPath, "utf-8"));
     return config.initialized ? "True" : "False";
   }
 
@@ -23,8 +24,9 @@ describe("installation", () => {
     TEST_TMP = createTempDirSync();
     TEST_VAULT = `${TEST_TMP}/vault`;
     HOME = `${TEST_TMP}/home`;
-    CONFIG_FILE = join(TEST_TMP, ".vault-config.json");
+    CONFIG_DIR = `${TEST_TMP}/second-brain-config`;
     mkdirSync(join(HOME, ".claude"), { recursive: true });
+    mkdirSync(CONFIG_DIR, { recursive: true });
     writeFileSync(join(HOME, ".claude/settings.json"), JSON.stringify({ hooks: {} }));
   });
 
@@ -37,17 +39,17 @@ describe("installation", () => {
   });
 
   test("initialized=false triggers initialization", () => {
-    writeFileSync(CONFIG_FILE, JSON.stringify({ initialized: false }));
+    writeFileSync(join(CONFIG_DIR, ".vault-config.json"), JSON.stringify({ initialized: false }));
     expect(checkInitialized()).toBe("False");
   });
 
   test("initialized=true skips initialization", () => {
-    writeFileSync(CONFIG_FILE, JSON.stringify({ initialized: true }));
+    writeFileSync(join(CONFIG_DIR, ".vault-config.json"), JSON.stringify({ initialized: true }));
     expect(checkInitialized()).toBe("True");
   });
 
   test("initialized key missing means not initialized", () => {
-    writeFileSync(CONFIG_FILE, JSON.stringify({ vaultPath: "/some/path" }));
+    writeFileSync(join(CONFIG_DIR, ".vault-config.json"), JSON.stringify({ vaultPath: "/some/path" }));
     expect(checkInitialized()).toBe("False");
   });
 
@@ -56,7 +58,7 @@ describe("installation", () => {
     expect(checkInitialized()).toBe("False");
 
     // Run init
-    const initResult = runScript("init-vault.ts", [TEST_VAULT, CONFIG_FILE]);
+    const initResult = runScript("init-vault.ts", [TEST_VAULT], { env: { SECOND_BRAIN_CONFIG_DIR: CONFIG_DIR } });
     expect(initResult.status).toBe(0);
     expect(checkInitialized()).toBe("True");
 
@@ -75,23 +77,23 @@ describe("installation", () => {
     expect(settings.hooks).toHaveProperty("SessionStart");
 
     // Verify vault-config state
-    const config = JSON.parse(readFileSync(CONFIG_FILE, "utf-8"));
+    const config = JSON.parse(readFileSync(join(CONFIG_DIR, ".vault-config.json"), "utf-8"));
     expect(config.vaultPath).toBe(TEST_VAULT);
   });
 
   test("re-run install does not overwrite existing config", () => {
     // First complete install
-    runScript("init-vault.ts", [TEST_VAULT, CONFIG_FILE]);
+    runScript("init-vault.ts", [TEST_VAULT], { env: { SECOND_BRAIN_CONFIG_DIR: CONFIG_DIR } });
     runScript("mount-hooks.ts", [], { env: { HOME } });
 
-    const config1 = JSON.parse(readFileSync(CONFIG_FILE, "utf-8"));
+    const config1 = JSON.parse(readFileSync(join(CONFIG_DIR, ".vault-config.json"), "utf-8"));
     const vaultPathBefore = config1.vaultPath;
 
     // Re-run install
-    runScript("init-vault.ts", [TEST_VAULT, CONFIG_FILE]);
+    runScript("init-vault.ts", [TEST_VAULT], { env: { SECOND_BRAIN_CONFIG_DIR: CONFIG_DIR } });
     runScript("mount-hooks.ts", [], { env: { HOME } });
 
-    const config2 = JSON.parse(readFileSync(CONFIG_FILE, "utf-8"));
+    const config2 = JSON.parse(readFileSync(join(CONFIG_DIR, ".vault-config.json"), "utf-8"));
     expect(config2.vaultPath).toBe(vaultPathBefore);
   });
 });

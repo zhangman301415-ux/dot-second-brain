@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from "fs";
 import { dirname, join, resolve } from "path";
+import { homedir } from "os";
 
 const VAULT = process.argv[2] ?? "";
 if (!VAULT) {
@@ -16,8 +17,11 @@ if (!VAULT.startsWith("/")) {
 
 const COMMANDS_DIR = dirname(new URL(import.meta.url).pathname);
 const TEMPLATES_DIR = join(COMMANDS_DIR, "..", "templates", "vault-templates");
-const CONFIG = process.argv[3] ?? resolve(VAULT, ".vault-config.json");
+const CONFIG_DIR = process.env.SECOND_BRAIN_CONFIG_DIR ?? join(homedir(), ".claude", "second-brain");
+const CONFIG = join(CONFIG_DIR, ".vault-config.json");
 const TODAY = new Date().toISOString().slice(0, 10);
+
+mkdirSync(CONFIG_DIR, { recursive: true });
 
 // 1. Create directory structure
 try {
