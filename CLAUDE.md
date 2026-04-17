@@ -6,18 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 基于 Claude Code Skills 的"第二大脑"知识管理系统，采用五层认知架构。通过 `context-loader`（上下文加载）和 `refine-knowledge`（知识萃取）两个 Skill，自动化实现知识提取与上下文注入，底层使用 Obsidian 风格的 Vault 存储。
 
-## 五层认知模型
-
-| 层级 | 目录 | 核心问题 | Agent 行为 |
-|------|------|----------|-----------|
-| L5 Identity | `00-Identity/` | 我是谁？ | 主动读取，更新需用户确认 |
-| L4 Procedural | `01-Procedural/` | 我怎么做？ | 读取作行为参考 |
-| L3 Semantic | `02-Semantic/` | 我知道什么？ | 自由读写 |
-| L2 Episodic | `03-Episodic/` | 发生过什么？ | 自由写入 |
-| L1 Working | `04-Working/` | 当前在做什么？ | 自由读写 |
-| 输出层 | `05-Creation/` | 生成内容 | — |
-| 归档层 | `06-Archive/` | 历史记录 | — |
-
 ## 开发命令
 
 ```bash
