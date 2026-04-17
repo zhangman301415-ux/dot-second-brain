@@ -4,9 +4,7 @@
   "description": "五层认知架构 Agent Skills — 知识萃取与上下文加载",
   "type": "module",
   "bin": {
-    "second-brain-cli": "bin/cli.js",
-    "second-brain-cli-stop-hook": "bin/stop-hook.js",
-    "second-brain-cli-session-start-hook": "bin/session-start-hook.js"
+    "second-brain-cli": "bin/cli.js"
   },
   "files": [
     "dist/",

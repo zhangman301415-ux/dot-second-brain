@@ -6,7 +6,7 @@ hooks:
     - matcher: ""
       hooks:
         - type: command
-          command: "npx --yes second-brain-cli-stop-hook"
+          command: "second-brain-cli queue-session"
 ---
 
 # 知识萃取（Refine Knowledge）

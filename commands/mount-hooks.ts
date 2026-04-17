@@ -26,14 +26,14 @@ hooks["Stop"] = [
   ...existingStop,
   {
     matcher: "",
-    hooks: [{ type: "command", command: "npx --yes second-brain-stop-hook" }],
+    hooks: [{ type: "command", command: "second-brain-cli queue-session" }],
   },
 ];
 hooks["SessionStart"] = [
   ...existingStart,
   {
     matcher: "",
-    hooks: [{ type: "command", command: "npx --yes second-brain-session-start-hook" }],
+    hooks: [{ type: "command", command: "second-brain-cli inject-context" }],
   },
 ];
 

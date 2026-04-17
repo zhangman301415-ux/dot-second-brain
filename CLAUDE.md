@@ -28,8 +28,8 @@ npm run test:watch
 |------|------|
 | `npx --yes second-brain-cli init-vault <vault-path>` | 创建 Vault 目录结构，生成各层索引和 Identity 模板 |
 | `npx --yes second-brain-cli mount-hooks` | 注册 Stop/SessionStart Hook 到 settings.json |
-| `npx --yes second-brain-cli-stop-hook` | Stop Hook：备份会话记录，启动 tmux 后台生成摘要 |
-| `npx --yes second-brain-cli-session-start-hook` | SessionStart Hook：从归档注入上下文 |
+| `second-brain-cli queue-session` | Stop Hook：备份会话记录，启动 tmux 后台生成摘要 |
+| `second-brain-cli inject-context` | SessionStart Hook：从归档注入上下文 |
 
 ## Hook 机制
 

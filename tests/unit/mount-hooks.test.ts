@@ -40,9 +40,9 @@ describe("mount-hooks", () => {
     expect(stopHooks.length).toBeGreaterThanOrEqual(1);
     expect(startHooks.length).toBeGreaterThanOrEqual(1);
     const stopCmd = stopHooks[0].hooks[0].command;
-    expect(stopCmd).toContain("second-brain-stop-hook");
+    expect(stopCmd).toContain("second-brain-cli queue-session");
     const startCmd = startHooks[0].hooks[0].command;
-    expect(startCmd).toContain("second-brain-session-start-hook");
+    expect(startCmd).toContain("second-brain-cli inject-context");
   });
 
   test("multiple runs do not duplicate hooks (idempotent)", () => {
@@ -54,12 +54,12 @@ describe("mount-hooks", () => {
     const startHooks = (settings.hooks as any)?.SessionStart || [];
     for (const h of stopHooks) {
       const cmds = h.hooks?.map((x: any) => x.command) || [];
-      const count = cmds.filter((c: string) => c.includes("second-brain-stop-hook")).length;
+      const count = cmds.filter((c: string) => c.includes("second-brain-cli queue-session")).length;
       expect(count).toBeLessThanOrEqual(1);
     }
     for (const h of startHooks) {
       const cmds = h.hooks?.map((x: any) => x.command) || [];
-      const count = cmds.filter((c: string) => c.includes("second-brain-session-start-hook")).length;
+      const count = cmds.filter((c: string) => c.includes("second-brain-cli inject-context")).length;
       expect(count).toBeLessThanOrEqual(1);
     }
   });
