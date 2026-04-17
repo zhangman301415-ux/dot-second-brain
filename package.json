@@ -1,6 +1,6 @@
 {
   "name": "second-brain-cli",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "五层认知架构 Agent Skills — 知识萃取与上下文加载",
   "type": "module",
   "bin": {
